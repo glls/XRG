@@ -1,4 +1,4 @@
-/* 
+/*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
  * Copyright (C) 2002-2012 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
@@ -21,37 +21,26 @@
  */
 
 //
-//  XRGCPUView.h
+//  XRGGraphicsView.h
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #import "XRGGenericView.h"
-#import "XRGCPUMiner.h"
-#import "XRGProcessMiner.h"
+#import "XRGGPUMiner.h"
 
-@interface XRGCPUView : XRGGenericView
+@interface XRGGPUView : XRGGenericView
 {
 @private
-    NSSize						graphSize;
-    NSRect						fastCPUDisplayRect;
-    XRGModule                   *m;
-    XRGCPUMiner                 *CPUMiner;
-	XRGProcessMiner				*processMiner;
-
-    float                       UPTIME_WIDE;
-    float                       UPTIME_NORMAL;
-    float                       AVG_WIDE;
-    float                       AVG_NORMAL;
-     
-    int                         numSamples;
+	NSSize						graphSize;
+	NSInteger					numSamples;
+	NSInteger					textRectHeight;
+	XRGModule                   *m;
+	XRGGPUMiner            *graphicsMiner;
 }
 
 - (void)setGraphSize:(NSSize)newSize;
 - (void)setWidth:(int)newWidth;
 - (void)updateMinSize;
-
 - (void)graphUpdate:(NSTimer *)aTimer;
-- (void)fastUpdate:(NSTimer *)aTimer;
-- (void)drawGraph:(NSRect) inRect;
-- (void)drawLotsOfCoresGraph:(NSRect)inRect;
+
 @end

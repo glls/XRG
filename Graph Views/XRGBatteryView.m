@@ -31,6 +31,9 @@
 #include <IOKit/pwr_mgt/IOPM.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
 
+#include "IOKit/ps/IOPowerSources.h"
+#include "IOKit/ps/IOPSKeys.h"
+
 @implementation XRGBatteryView
 
 - (void)awakeFromNib {    
@@ -60,8 +63,8 @@
     parentWindow = (XRGGraphWindow *)[self window];
     [parentWindow setBatteryView:self];
     [parentWindow initTimers];  
-    appSettings = [[parentWindow appSettings] retain];
-    moduleManager = [[parentWindow moduleManager] retain];
+    appSettings = [parentWindow appSettings];
+    moduleManager = [parentWindow moduleManager];
     
     // flush out the first spike
     [self graphUpdate:nil];
@@ -84,12 +87,12 @@
     NBIF_NORMAL       = 0;
     
     NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];    
-    m = [[[XRGModule alloc] initWithName:@"Battery" andReference:self] retain];
-    [m setDoesFastUpdate:NO];
-    [m setDoesGraphUpdate:YES];
-    [m setDoesMin5Update:NO];
-    [m setDoesMin30Update:NO];
-    [m setDisplayOrder:2];
+    m = [[XRGModule alloc] initWithName:@"Battery" andReference:self];
+    m.doesFastUpdate = NO;
+    m.doesGraphUpdate = YES;
+    m.doesMin5Update = NO;
+    m.doesMin30Update = NO;
+    m.displayOrder = 3;
     [self updateMinSize];
     [m setIsDisplayed: (bool)[defs boolForKey:XRG_showBatteryGraph]];
 
@@ -255,9 +258,9 @@
             return;
         }
     }
-  
+	
     if ((err = IOPMCopyBatteryInfo(port, &battinfo)) == kIOReturnSuccess && battinfo != NULL) {
-		NSArray *batteryInfoArray = (NSArray *)battinfo;
+		NSArray *batteryInfoArray = (NSArray *)CFBridgingRelease(battinfo);
         numBatteries = batteryInfoArray.count;
         
         // Since there could be a different number of batteries each time we run this code,
@@ -289,7 +292,7 @@
         NSInteger skipBatteries = 0;
         
         for (NSInteger i = 0; i < numBatteries; i++) {
-            NSInteger flags = [[[batteryInfoArray objectAtIndex:i] valueForKey:[NSString stringWithUTF8String:kIOBatteryFlagsKey]] integerValue];
+            NSInteger flags = [[batteryInfoArray[i] valueForKey:@kIOBatteryFlagsKey] integerValue];
             
             // Check if this is really a battery
             if (flags & kIOPMACnoChargeCapability) {
@@ -311,22 +314,22 @@
             }
             
             // get the current charge
-			current[i] = [[[batteryInfoArray objectAtIndex:i] valueForKey:[NSString stringWithUTF8String:kIOBatteryCurrentChargeKey]] integerValue];
+			current[i] = [[batteryInfoArray[i] valueForKey:@kIOBatteryCurrentChargeKey] integerValue];
             chargeSum += current[i];
             
             // get the total capacity
-			capacity[i] = [[[batteryInfoArray objectAtIndex:i] valueForKey:[NSString stringWithUTF8String:kIOBatteryCapacityKey]] integerValue];
+			capacity[i] = [[batteryInfoArray[i] valueForKey:@kIOBatteryCapacityKey] integerValue];
             capacitySum += capacity[i];
                                 
             // get the current voltage
-			voltage[i] = [[[batteryInfoArray objectAtIndex:i] valueForKey:[NSString stringWithUTF8String:kIOBatteryVoltageKey]] integerValue];
+			voltage[i] = [[batteryInfoArray[i] valueForKey:@kIOBatteryVoltageKey] integerValue];
             if (voltage[i] || i == 0)
                 voltageAverage += voltage[i];
             else 
                 voltageAverage += voltageAverage / i;
                                                 
             // get the current amperage
-			amperage[i] = [[[batteryInfoArray objectAtIndex:i] valueForKey:[NSString stringWithUTF8String:kIOBatteryAmperageKey]] integerValue];
+			amperage[i] = [[batteryInfoArray[i] valueForKey:@kIOBatteryAmperageKey] integerValue];
             if (amperage[i] || i == 0)
                 amperageAverage += amperage[i];
             else 
@@ -357,15 +360,34 @@
             powerStatus = UNKNOWN;
         }
     
-        CFRelease(battinfo);
         [self setNeedsDisplay:YES];
     }  
     else {
         powerStatus = UNKNOWN;
     }
-    
+	
     return;
 }
+
+/*! Lots of UPS devices don't reveal anything really useful here other than time to empty and charge %.  Leaving this here for possible future use though. */
+//- (void)upsUpdate {
+//	CFTypeRef powerBlob = IOPSCopyPowerSourcesInfo();
+//	if (powerBlob != NULL) {
+//		CFArrayRef powerSourceKeys = IOPSCopyPowerSourcesList(powerBlob);
+//		if (powerSourceKeys != NULL) {
+//			for (NSInteger i = 0; i < CFArrayGetCount(powerSourceKeys); i++) {
+//				CFTypeRef powerSourceKey = CFArrayGetValueAtIndex(powerSourceKeys, i);
+//				CFDictionaryRef powerD = IOPSGetPowerSourceDescription(powerBlob, powerSourceKey);
+//				if (powerD != NULL) {
+//					
+//				}
+//			}
+//			CFRelease(powerSourceKeys);
+//		}
+//		
+//		CFRelease(powerBlob);
+//	}
+//}
 
 - (void)drawRect:(NSRect)rect {
     if ([self isHidden]) return;
@@ -636,9 +658,6 @@
             [centerS drawInRect:textRect withAttributes:[appSettings alignCenterAttributes]];
         }
 
-        [leftS release];
-        [rightS release];
-        [centerS release];
     }
     else {
         if (NBIF_WIDE <= textRect.size.width) {
@@ -663,16 +682,14 @@
 
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Energy Saver System Preferences..." action:@selector(openEnergySaverSystemPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
-    [myMenu autorelease];
     return myMenu;
 }
 
 - (void)openEnergySaverSystemPreferences:(NSEvent *)theEvent {
     [NSTask 
       launchedTaskWithLaunchPath:@"/usr/bin/open"
-      arguments:[NSArray arrayWithObject:@"/System/Library/PreferencePanes/EnergySaver.prefPane"]
+      arguments:@[@"/System/Library/PreferencePanes/EnergySaver.prefPane"]
     ];
 }
 

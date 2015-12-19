@@ -40,7 +40,6 @@
     host_basic_info_data_t		hostInfo;
     int                         numCPUs;
 
-    float                       *immediateCPUTemperatureC;
     int                         temperatureCounter;			// count and only grab the temperature every 5 seconds.
 	
 	bool						displayFans;
@@ -56,14 +55,9 @@
 }
 
 - (void)setDataSize:(int)newNumSamples;
-- (int)setNumCPUs;
-- (int)numberOfCPUs;										// Returns the number of CPUs, which is the size of the float array 
-															// returned from currentCPUTemperature.
+- (int)numberOfCPUs;
 
 - (void)setCurrentTemperatures;								// Tries 3 different methods of gathering temperature statistics.
-- (void)tryHostProcessorTemperature;
-- (void)tryIOHWSensorTemperature;
-- (void)tryCPUThermoTemperature;
 - (void)trySMCTemperature;
 - (void)setDisplayFans:(bool)yesNo;
 
@@ -77,7 +71,5 @@
 															// which I can give you the code for early if you want (it hasn't been
 															// released yet).
 - (NSString *)labelForKey:(NSString *)locationKey;			// return a string label for this location.
-                                                           
-- (float *)currentCPUTemperature;							// returns an array of floats with the processor temperatures
 
 @end

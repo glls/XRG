@@ -40,24 +40,24 @@
     bool                inOuter;
     bool                inHeader;
     bool                isVertical;
-    bool                clickedMinimized;
     bool                uiIsHidden;
     NSRect              unminimizedRect;
 	
 	NSPoint				viewPointClicked;
-    
-    NSString            *hostname;
-	
-	NSArray				*resizeRects;
 	
 	NSTrackingRectTag	trackingRect;
 }
+
+@property NSString *hostname;
+@property NSArray *resizeRects;
+
+@property BOOL clickedMinimized;
+
 - (void)getHostname;
 - (void)offsetDrawingOrigin:(NSSize)offset;
 - (void)resizeSubviewsWithOldSize:(NSSize)oldBoundsSize;
 - (void)minimizeWindow;
 - (void)expandWindow;
 - (void)mouseDownAction:(NSEvent *)theEvent;
-- (void)setResizeRects:(NSArray *)rects;
 
 @end

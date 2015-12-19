@@ -34,25 +34,25 @@
     [parentWindow setTemperatureView:self];
     [parentWindow initTimers];
     
-    appSettings = [[parentWindow appSettings] retain];
-    moduleManager = [[parentWindow moduleManager] retain];
+    appSettings = [parentWindow appSettings];
+    moduleManager = [parentWindow moduleManager];
 	
-	locationSizeCache = [[[NSMutableDictionary alloc] initWithCapacity:20] retain];
+	locationSizeCache = [[NSMutableDictionary alloc] initWithCapacity:20];
     
     TemperatureMiner = [[XRGTemperatureMiner alloc] init];
     [parentWindow setTemperatureMiner:TemperatureMiner];
 	[TemperatureMiner setDisplayFans:YES];
 
     NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];    
-    m = [[[XRGModule alloc] initWithName:@"Temperature" andReference:self] retain];
-    [m setDoesFastUpdate:NO];
-    [m setDoesGraphUpdate:YES];
-    [m setDoesMin5Update:NO];
-    [m setDoesMin30Update:NO];
-    [m setDisplayOrder:3];
-    [m setAlwaysDoesGraphUpdate:NO];
+    m = [[XRGModule alloc] initWithName:@"Temperature" andReference:self];
+	m.doesFastUpdate = NO;
+	m.doesGraphUpdate = YES;
+	m.doesMin5Update = NO;
+	m.doesMin30Update = NO;
+	m.displayOrder = 4;
+    m.alwaysDoesGraphUpdate = NO;
     [self updateMinSize];
-    [m setIsDisplayed: (bool)[defs boolForKey:XRG_showTemperatureGraph]];
+    m.isDisplayed = [defs boolForKey:XRG_showTemperatureGraph];
 
     [[parentWindow moduleManager] addModule:m];
     [self setGraphSize:[m currentSize]];
@@ -142,19 +142,19 @@
 	float minValue = 9999999.f;
     
     if ([appSettings tempFG1Location] > 0 && [appSettings tempFG1Location] <= [locations count]) {
-        dataSet1 = [TemperatureMiner dataSetForKey:[locations objectAtIndex:[appSettings tempFG1Location] - 1]];
+        dataSet1 = [TemperatureMiner dataSetForKey:locations[[appSettings tempFG1Location] - 1]];
         if ([dataSet1 max] > maxValue) maxValue = [dataSet1 max];
 		if ([dataSet1 min] < minValue) minValue = [dataSet1 min];
     }
 
     if ([appSettings tempFG2Location] > 0 && [appSettings tempFG2Location] <= [locations count]) {
-        dataSet2 = [TemperatureMiner dataSetForKey:[locations objectAtIndex:[appSettings tempFG2Location] - 1]];
+        dataSet2 = [TemperatureMiner dataSetForKey:locations[[appSettings tempFG2Location] - 1]];
         if ([dataSet2 max] > maxValue) maxValue = [dataSet2 max];
 		if ([dataSet2 min] < minValue) minValue = [dataSet2 min];
     }
 
     if ([appSettings tempFG3Location] > 0 && [appSettings tempFG3Location] <= [locations count]) {
-        dataSet3 = [TemperatureMiner dataSetForKey:[locations objectAtIndex:[appSettings tempFG3Location] - 1]];
+        dataSet3 = [TemperatureMiner dataSetForKey:locations[[appSettings tempFG3Location] - 1]];
         if ([dataSet3 max] > maxValue) maxValue = [dataSet3 max];
  		if ([dataSet3 min] < minValue) minValue = [dataSet3 min];
     }
@@ -183,18 +183,37 @@
     // draw the text
     [gc setShouldAntialias:[appSettings antialiasText]];
 
-    NSMutableString *s = [NSMutableString stringWithCapacity:50];
-    NSMutableString *t = [NSMutableString stringWithCapacity:50];
-			
-	bool firstLine = YES;
+	NSMutableDictionary *sAttributes = [NSMutableDictionary dictionaryWithDictionary:[appSettings alignLeftAttributes]];
+	NSMutableDictionary *tAttributes = [NSMutableDictionary dictionaryWithDictionary:[appSettings alignRightAttributes]];
+    NSMutableAttributedString *s = [[NSMutableAttributedString alloc] initWithString:@"" attributes:sAttributes];
+	NSMutableAttributedString *t = [[NSMutableAttributedString alloc] initWithString:@"" attributes:tAttributes];
+	
+	NSAttributedString *newline = [[NSAttributedString alloc] initWithString:@"\n" attributes:[appSettings alignLeftAttributes]];
+	
+	BOOL firstLine = YES;
     for (i = 0; i < [locations count]; i++) {
-        NSString *label = [TemperatureMiner labelForKey:[locations objectAtIndex:i]];
+		NSColor *lineColor = [appSettings textColor];
+		if (i == [appSettings tempFG1Location] - 1) {
+			lineColor = [[appSettings graphFG1Color] colorWithAlphaComponent:[appSettings textTransparency]];
+		}
+		else if (i == [appSettings tempFG2Location] - 1) {
+			lineColor = [[appSettings graphFG2Color] colorWithAlphaComponent:[appSettings textTransparency]];
+		}
+		else if (i == [appSettings tempFG3Location] - 1) {
+			lineColor = [[appSettings graphFG3Color] colorWithAlphaComponent:[appSettings textTransparency]];
+		}
+		if (lineColor) {
+			sAttributes[NSForegroundColorAttributeName] = lineColor;
+			tAttributes[NSForegroundColorAttributeName] = lineColor;
+		}
+		
+        NSString *label = [TemperatureMiner labelForKey:locations[i]];
 		if (label == nil) {
 			continue;
 		}
 
-        float locationTemperature = [TemperatureMiner currentValueForKey:[locations objectAtIndex:i]];		
-        NSString *units = [TemperatureMiner unitsForLocation:[locations objectAtIndex:i]];
+        float locationTemperature = [TemperatureMiner currentValueForKey:locations[i]];		
+        NSString *units = [TemperatureMiner unitsForLocation:locations[i]];
 		if (units == nil) {
 			units = @"";
 		}
@@ -213,11 +232,11 @@
 			firstLine = NO;
 		}
 		else {
-            [s appendString:@"\n"];
-            [t appendString:@"\n"];
+			[s appendAttributedString:newline];
+			[t appendAttributedString:newline];
         }
         
-		[s appendString:label];
+		[s appendAttributedString:[[NSAttributedString alloc] initWithString:label attributes:sAttributes]];
         
         // Now add the temperature
         if ([appSettings tempUnits] == 0 && [units isEqualToString:[NSString stringWithFormat:@"%CC", (unsigned short)0x00B0]]) {
@@ -226,32 +245,23 @@
         }
 		
 		if ([units isEqualToString:@" rpm"] | [units isEqualToString:@"%"]) {
-			[t appendFormat:@"%3.0f%@", locationTemperature, units];
+			[t appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%3.0f%@", locationTemperature, units] attributes:tAttributes]];
 		}
 		else {
-			[t appendFormat:@"%3.1f%@", locationTemperature, units];
+			[t appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%3.1f%@", locationTemperature, units] attributes:tAttributes]];
 		}
     }
     
-    [t drawInRect:textRect withAttributes:[appSettings alignRightAttributes]];
+    [t drawInRect:textRect];
     
 	NSRect leftRect = NSMakeRect(textRect.origin.x, 
 								 textRect.origin.y, 
-								 textRect.size.width - [t sizeWithAttributes:[appSettings alignRightAttributes]].width, 
+								 textRect.size.width - [t size].width,
 								 textRect.size.height);
-    [s drawInRect:leftRect withAttributes:[appSettings alignLeftAttributes]];
+    [s drawInRect:leftRect];
         
     [gc setShouldAntialias:YES];
 }
-
-//- (int) getWidthForLabel:(NSString *)label {
-//	if ([locationSizeCache objectForKey:label] == nil) {
-//		NSMutableAttributedString *tmpAttrString = [[[NSMutableAttributedString alloc] initWithString:label attributes:[appSettings alignLeftAttributes]] autorelease];
-//		[locationSizeCache setObject:[NSNumber numberWithInt:[tmpAttrString size].width + 12] forKey:label];
-//	}
-//	
-//	return [[locationSizeCache objectForKey:label] intValue];
-//}
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent {       
     return YES;
@@ -270,15 +280,15 @@
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
-    NSMenu *myMenu = [[[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@"Temperature View"] autorelease];
+    NSMenu *myMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@"Temperature View"];
     NSMenuItem *tMI;
 
     NSArray *locations = [TemperatureMiner locationKeysInOrder];
     int i;    
     for (i = 0; i < [locations count]; i++) {
-        NSMutableString *s = [NSMutableString stringWithFormat:@"%@: ", [TemperatureMiner labelForKey:[locations objectAtIndex:i]]];
-        NSString *units = [TemperatureMiner unitsForLocation:[locations objectAtIndex:i]];
-		float locationTemperature = [TemperatureMiner currentValueForKey:[locations objectAtIndex:i]];
+        NSMutableString *s = [NSMutableString stringWithFormat:@"%@: ", [TemperatureMiner labelForKey:locations[i]]];
+        NSString *units = [TemperatureMiner unitsForLocation:locations[i]];
+		float locationTemperature = [TemperatureMiner currentValueForKey:locations[i]];
         if (locationTemperature < 0.001) {
 			continue;
 		}
@@ -293,16 +303,16 @@
 			[s appendFormat:@"%3.0f%@", locationTemperature, units];
 		}
 
-        tMI = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:s
+        tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:s
 																	action:@selector(emptyEvent:) 
-															 keyEquivalent:@""] autorelease];
+															 keyEquivalent:@""];
 
         [myMenu addItem:tMI];
     }
         
     [myMenu addItem:[NSMenuItem separatorItem]];
 
-    tMI = [[[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Temperature Preferences..." action:@selector(openTemperaturePreferences:) keyEquivalent:@""] autorelease];
+    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Temperature Preferences..." action:@selector(openTemperaturePreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
     return myMenu;

@@ -56,8 +56,8 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
     parentWindow = (XRGGraphWindow *)[self window];
     [parentWindow setNetView:self];
     [parentWindow initTimers];  
-    appSettings = [[parentWindow appSettings] retain];
-    moduleManager = [[parentWindow moduleManager] retain];
+    appSettings = [parentWindow appSettings];
+    moduleManager = [parentWindow moduleManager];
     networkInterfaces = [[NSMutableArray alloc] init];
     
     firstTimeStats = YES;
@@ -85,12 +85,12 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
     [self setCurrentBandwidth];
         
     NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];    
-    m = [[[XRGModule alloc] initWithName:@"Network" andReference:self] retain];
-    [m setDoesFastUpdate:NO];
-    [m setDoesGraphUpdate:YES];
-    [m setDoesMin5Update:NO];
-    [m setDoesMin30Update:NO];
-    [m setDisplayOrder:4];
+    m = [[XRGModule alloc] initWithName:@"Network" andReference:self];
+	m.doesFastUpdate = NO;
+	m.doesGraphUpdate = YES;
+	m.doesMin5Update = NO;
+	m.doesMin30Update = NO;
+	m.displayOrder = 5;
     [self updateMinSize];
     [m setIsDisplayed: (bool)[defs boolForKey:XRG_showNetworkGraph]];
 
@@ -319,7 +319,7 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
         interfaceStats[0].if_out.bsd_bytes_prev = 0;
         
         if (strcmp(interface_name, "lo0") != 0)
-            [networkInterfaces addObject:[NSString stringWithCString:interface_name encoding:NSUTF8StringEncoding]];
+            [networkInterfaces addObject:@(interface_name)];
 
         numInterfaces++;
     }
@@ -415,7 +415,7 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
             interfaceStats[numInterfaces].if_out.bsd_bytes_prev = 0;
             
             if (strcmp(interface_name, "lo0") != 0)
-                [networkInterfaces addObject:[NSString stringWithCString:interface_name encoding:NSUTF8StringEncoding]];
+                [networkInterfaces addObject:@(interface_name)];
             
             numInterfaces++;
         }
@@ -437,13 +437,9 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
 - (void)setNetworkInterfaces:(char **)interfaces {
     int i = 0;
     
-    if (networkInterfaces) {
-        [networkInterfaces autorelease];
-    }
-    
     networkInterfaces = [[NSMutableArray alloc] init];
     while (interfaces[i][0] != '\0') {
-        [networkInterfaces addObject:[NSString stringWithCString:interfaces[i++] encoding:NSUTF8StringEncoding]];
+        [networkInterfaces addObject:@(interfaces[i++])];
     }
 }
 
@@ -658,7 +654,6 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
         [s drawInRect:tmpRect withAttributes:[appSettings alignRightAttributes]];
     }
 
-    [s release];
 
     [gc setShouldAntialias:YES];
 }
@@ -674,31 +669,25 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
 
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Network Interface Traffic" action:@selector(emptyEvent:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
 
     for (i = 0; i < numInterfaces; i++) {
         tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:[NSString stringWithFormat:@"%s: RX(%1.1fM) TX(%1.1fM)", interfaceStats[i].if_name, interfaceStats[i].if_in.bytes / 1024. / 1024., interfaceStats[i].if_out.bytes / 1024. / 1024.] action:@selector(emptyEvent:) keyEquivalent:@""];
         [myMenu addItem:tMI];
-        [tMI release];
     }
     
     [myMenu addItem:[NSMenuItem separatorItem]];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Network System Preferences..." action:@selector(openNetworkSystemPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Network Utility..." action:@selector(openNetworkUtility:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
     [myMenu addItem:[NSMenuItem separatorItem]];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Network Preferences..." action:@selector(openNetworkPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
-    [myMenu autorelease];
     return myMenu;
 }
 
@@ -708,14 +697,14 @@ int read_ApplePPP_data(io_stats *i_net, io_stats *o_net);
 - (void)openNetworkSystemPreferences:(NSEvent *)theEvent {
     [NSTask 
       launchedTaskWithLaunchPath:@"/usr/bin/open"
-      arguments:[NSArray arrayWithObject:@"/System/Library/PreferencePanes/Network.prefPane"]
+      arguments:@[@"/System/Library/PreferencePanes/Network.prefPane"]
     ];
 }
 
 - (void)openNetworkUtility:(NSEvent *)theEvent {
     [NSTask 
       launchedTaskWithLaunchPath:@"/usr/bin/open"
-      arguments:[NSArray arrayWithObject:@"/Applications/Utilities/Network Utility.app"]
+      arguments:@[@"/Applications/Utilities/Network Utility.app"]
     ];
 }
 

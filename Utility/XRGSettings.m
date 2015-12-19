@@ -28,12 +28,8 @@
 #import "definitions.h"
 
 @implementation XRGSettings
-@synthesize backgroundColor, graphBGColor, graphFG1Color, graphFG2Color, graphFG3Color, borderColor, textColor;
-@synthesize backgroundTransparency, graphBGTransparency, graphFG1Transparency, graphFG2Transparency, graphFG3Transparency, borderTransparency, textTransparency;
-@synthesize graphFont, textRectHeight, alignRight, alignLeft, alignCenter, alignRightAttributes, alignLeftAttributes, alignCenterAttributes;
-@synthesize fastCPUUsage, separateCPUColor, showCPUTemperature, cpuTemperatureUnits, antiAliasing, ICAO, secondaryWeatherGraph, temperatureUnits, distanceUnits, pressureUnits, showMemoryPagingGraph, memoryShowWired, memoryShowActive, memoryShowInactive, memoryShowFree, memoryShowCache, memoryShowPage, graphRefresh, showLoadAverage, netMinGraphScale, stockSymbols, stockGraphTimeFrame, stockShowChange, showDJIA, windowLevel, stickyWindow, checkForUpdates, netGraphMode, diskGraphMode, dropShadow, showTotalBandwidthSinceBoot, showTotalBandwidthSinceLoad, networkInterface, windowTitle, autoExpandGraph, foregroundWhenExpanding, showSummary, minimizeUpDown, antialiasText, cpuShowAverageUsage, cpuShowUptime, tempUnits, tempFG1Location, tempFG2Location, tempFG3Location;
 
-- (id) init {
+- (instancetype) init {
 	self = [super init];
 	if (self) {
 		self.backgroundColor = [NSColor clearColor];
@@ -52,31 +48,31 @@
 		self.borderTransparency     = 0;
 		self.textTransparency       = 0;
 
-		self.graphFont = [NSFont fontWithName:@"Lucida Grande" size:8.0];
-		self.alignRight = [[[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil] autorelease];
-		self.alignLeft = [[[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil] autorelease];
-		self.alignCenter = [[[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil] autorelease];
-		[alignRight  setAlignment:NSRightTextAlignment];
-		[alignLeft   setAlignment:NSLeftTextAlignment];
-		[alignCenter setAlignment:NSCenterTextAlignment];
-		[alignLeft setLineBreakMode:NSLineBreakByTruncatingMiddle];
+		self.graphFont = [NSFont systemFontOfSize:10.];
+		self.alignRight = [[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil];
+		self.alignLeft = [[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil];
+		self.alignCenter = [[NSParagraphStyle defaultParagraphStyle] mutableCopyWithZone: nil];
+		[self.alignRight  setAlignment:NSRightTextAlignment];
+		[self.alignLeft   setAlignment:NSLeftTextAlignment];
+		[self.alignCenter setAlignment:NSCenterTextAlignment];
+		[self.alignLeft setLineBreakMode:NSLineBreakByTruncatingMiddle];
 
 		self.alignRightAttributes = [NSMutableDictionary dictionary];
-		[alignRightAttributes setObject:graphFont            forKey:NSFontAttributeName];
-		[alignRightAttributes setObject:[NSColor blackColor] forKey:NSForegroundColorAttributeName];
-		[alignRightAttributes setObject:alignRight           forKey:NSParagraphStyleAttributeName];
+		self.alignRightAttributes[NSFontAttributeName] = self.graphFont;
+		self.alignRightAttributes[NSForegroundColorAttributeName] = [NSColor blackColor];
+		self.alignRightAttributes[NSParagraphStyleAttributeName] = self.alignRight;
 
 		self.alignLeftAttributes = [NSMutableDictionary dictionary];
-		[alignLeftAttributes setObject:graphFont            forKey:NSFontAttributeName];
-		[alignLeftAttributes setObject:[NSColor blackColor] forKey:NSForegroundColorAttributeName];
-		[alignLeftAttributes setObject:alignLeft            forKey:NSParagraphStyleAttributeName];
+		self.alignLeftAttributes[NSFontAttributeName] = self.graphFont;
+		self.alignLeftAttributes[NSForegroundColorAttributeName] = [NSColor blackColor];
+		self.alignLeftAttributes[NSParagraphStyleAttributeName] = self.alignLeft;
 
 		self.alignCenterAttributes = [NSMutableDictionary dictionary];
-		[alignCenterAttributes setObject:graphFont            forKey:NSFontAttributeName];
-		[alignCenterAttributes setObject:[NSColor blackColor] forKey:NSForegroundColorAttributeName];
-		[alignCenterAttributes setObject:alignCenter          forKey:NSParagraphStyleAttributeName];
+		self.alignCenterAttributes[NSFontAttributeName] = self.graphFont;
+		self.alignCenterAttributes[NSForegroundColorAttributeName] = [NSColor blackColor];
+		self.alignCenterAttributes[NSParagraphStyleAttributeName] = self.alignCenter;
 
-		self.textRectHeight = [@"A" sizeWithAttributes:alignRightAttributes].height;
+		self.textRectHeight = [@"A" sizeWithAttributes:self.alignRightAttributes].height;
 
 		self.fastCPUUsage                = NO;
 		self.antiAliasing                = NO;
@@ -116,73 +112,48 @@
 	return self;
 }
 
-- (void) dealloc {
-	self.backgroundColor = nil;
-	self.graphBGColor = nil;
-	self.graphFG1Color = nil;
-	self.graphFG2Color = nil;
-	self.graphFG3Color = nil;
-	self.borderColor = nil;
-	self.textColor = nil;
-	
-	self.graphFont = nil;
-	self.alignRight = nil;
-	self.alignLeft = nil;
-	self.alignCenter = nil;
-	self.alignRightAttributes = nil;
-	self.alignLeftAttributes = nil;
-	self.alignCenterAttributes = nil;
-	
-	self.ICAO = nil;
-	self.stockSymbols = nil;
-	self.networkInterface = nil;
-	self.windowTitle = nil;
-	
-	[super dealloc];
-}
-
 - (void) readXTFDictionary:(NSDictionary *)xtfD {
 	@try {
-		NSData *d = [xtfD objectForKey:XRG_backgroundColor];
+		NSData *d = xtfD[XRG_backgroundColor];
 		[self setBackgroundColor:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_graphBGColor];
+		d = xtfD[XRG_graphBGColor];
 		[self setGraphBGColor:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_graphFG1Color];
+		d = xtfD[XRG_graphFG1Color];
 		[self setGraphFG1Color:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_graphFG2Color];
+		d = xtfD[XRG_graphFG2Color];
 		[self setGraphFG2Color:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_graphFG3Color];
+		d = xtfD[XRG_graphFG3Color];
 		[self setGraphFG3Color:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_borderColor];
+		d = xtfD[XRG_borderColor];
 		[self setBorderColor:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		d = [xtfD objectForKey:XRG_textColor];
+		d = xtfD[XRG_textColor];
 		[self setTextColor:[NSUnarchiver unarchiveObjectWithData:d]];
 		
-		NSNumber *n = (NSNumber *)[xtfD objectForKey:XRG_backgroundTransparency];
+		NSNumber *n = (NSNumber *)xtfD[XRG_backgroundTransparency];
 		[self setBackgroundTransparency: [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_graphBGTransparency];
+		n = (NSNumber *)xtfD[XRG_graphBGTransparency];
 		[self setGraphBGTransparency:    [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_graphFG1Transparency];
+		n = (NSNumber *)xtfD[XRG_graphFG1Transparency];
 		[self setGraphFG1Transparency:   [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_graphFG2Transparency];
+		n = (NSNumber *)xtfD[XRG_graphFG2Transparency];
 		[self setGraphFG2Transparency:   [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_graphFG3Transparency];
+		n = (NSNumber *)xtfD[XRG_graphFG3Transparency];
 		[self setGraphFG3Transparency:   [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_borderTransparency];
+		n = (NSNumber *)xtfD[XRG_borderTransparency];
 		[self setBorderTransparency:     [n floatValue]];
 		
-		n = (NSNumber *)[xtfD objectForKey:XRG_textTransparency];
+		n = (NSNumber *)xtfD[XRG_textTransparency];
 		[self setTextTransparency:       [n floatValue]];
 	} @catch (NSException *e) {
 		NSRunInformationalAlertPanel(@"Error", @"The file dragged is not a valid theme file.", @"OK", nil, nil);
@@ -211,93 +182,85 @@
 }
 
 - (void) setBackgroundColor:(NSColor *)color {
-    [backgroundColor autorelease];
-    backgroundColor = [[color colorWithAlphaComponent:backgroundTransparency] retain];            
+    _backgroundColor = [color colorWithAlphaComponent:self.backgroundTransparency];
 }
 
 - (void) setGraphBGColor:(NSColor *)color {
-    [graphBGColor autorelease];
-    graphBGColor = [[color colorWithAlphaComponent:graphBGTransparency] retain];            
+    _graphBGColor = [color colorWithAlphaComponent:self.graphBGTransparency];
 }
 
 - (void) setGraphFG1Color:(NSColor *)color {
-    [graphFG1Color autorelease];
-    graphFG1Color = [[color colorWithAlphaComponent:graphFG1Transparency] retain];            
+    _graphFG1Color = [color colorWithAlphaComponent:self.graphFG1Transparency];
 }
 
 - (void) setGraphFG2Color:(NSColor *)color {
-    [graphFG2Color autorelease];
-    graphFG2Color = [[color colorWithAlphaComponent:graphFG2Transparency] retain];            
+    _graphFG2Color = [color colorWithAlphaComponent:self.graphFG2Transparency];
 }
 
 - (void) setGraphFG3Color:(NSColor *)color {
-    [graphFG3Color autorelease];
-    graphFG3Color = [[color colorWithAlphaComponent:graphFG3Transparency] retain];
+    _graphFG3Color = [color colorWithAlphaComponent:self.graphFG3Transparency];
 }
 
 - (void) setBorderColor:(NSColor *)color {
-    [borderColor autorelease];
-    borderColor = [[color colorWithAlphaComponent:borderTransparency] retain];            
+    _borderColor = [color colorWithAlphaComponent:self.borderTransparency];
 }
 
 - (void) setTextColor:(NSColor *)color {
-    [textColor autorelease];
-    textColor = [[color colorWithAlphaComponent:textTransparency] retain];
-    [alignRightAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
-    [alignCenterAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
-    [alignLeftAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    _textColor = [color colorWithAlphaComponent:self.textTransparency];
+    self.alignRightAttributes[NSForegroundColorAttributeName] = _textColor;
+    self.alignCenterAttributes[NSForegroundColorAttributeName] = _textColor;
+    self.alignLeftAttributes[NSForegroundColorAttributeName] = _textColor;
 }
 
 - (void) setBackgroundTransparency:(CGFloat)transparency {
-    backgroundTransparency = transparency;
-    self.backgroundColor = [backgroundColor colorWithAlphaComponent:transparency];
+    _backgroundTransparency = transparency;
+    self.backgroundColor = [self.backgroundColor colorWithAlphaComponent:transparency];
 }
 
 - (void) setGraphBGTransparency:(CGFloat)transparency {
-    graphBGTransparency = transparency;
-    self.graphBGColor = [graphBGColor colorWithAlphaComponent:transparency];
+    _graphBGTransparency = transparency;
+    self.graphBGColor = [self.graphBGColor colorWithAlphaComponent:transparency];
 }
 
 - (void) setGraphFG1Transparency:(CGFloat)transparency {
-    graphFG1Transparency = transparency;
-    self.graphFG1Color = [graphFG1Color colorWithAlphaComponent:transparency];
+    _graphFG1Transparency = transparency;
+    self.graphFG1Color = [self.graphFG1Color colorWithAlphaComponent:transparency];
 }
 
 - (void) setGraphFG2Transparency:(CGFloat)transparency {
-    graphFG2Transparency = transparency;
-    self.graphFG2Color = [graphFG2Color colorWithAlphaComponent:transparency];
+    _graphFG2Transparency = transparency;
+    self.graphFG2Color = [self.graphFG2Color colorWithAlphaComponent:transparency];
 }
 
 - (void) setGraphFG3Transparency:(CGFloat)transparency {
-    graphFG3Transparency = transparency;
-    self.graphFG3Color = [graphFG3Color colorWithAlphaComponent:transparency];
+    _graphFG3Transparency = transparency;
+    self.graphFG3Color = [self.graphFG3Color colorWithAlphaComponent:transparency];
 }
 
 - (void) setBorderTransparency:(CGFloat)transparency {
-    borderTransparency = transparency;
-    self.borderColor = [borderColor colorWithAlphaComponent:transparency];
+    _borderTransparency = transparency;
+    self.borderColor = [self.borderColor colorWithAlphaComponent:transparency];
 }
 
 - (void) setTextTransparency:(CGFloat)transparency {
-    textTransparency = transparency;
-    self.textColor = [textColor colorWithAlphaComponent:transparency];
-    [alignRightAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
-    [alignCenterAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
-    [alignLeftAttributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    _textTransparency = transparency;
+    self.textColor = [self.textColor colorWithAlphaComponent:transparency];
+    self.alignRightAttributes[NSForegroundColorAttributeName] = self.textColor;
+    self.alignCenterAttributes[NSForegroundColorAttributeName] = self.textColor;
+    self.alignLeftAttributes[NSForegroundColorAttributeName] = self.textColor;
 }
 
 - (void) setGraphFont:(NSFont *)font {
-    if (font == graphFont) return;
+    if (font == self.graphFont) return;
     
     if (font) {
-		[graphFont autorelease];
-        graphFont = [font retain];
+		_graphFont = font;
     
-        [alignRightAttributes  setObject:graphFont forKey:NSFontAttributeName];
-        [alignLeftAttributes   setObject:graphFont forKey:NSFontAttributeName];
-        [alignCenterAttributes setObject:graphFont forKey:NSFontAttributeName];
+        self.alignRightAttributes[NSFontAttributeName] = self.graphFont;
+        self.alignLeftAttributes[NSFontAttributeName] = self.graphFont;
+        self.alignCenterAttributes[NSFontAttributeName] = self.graphFont;
     
-		self.textRectHeight = [[NSString stringWithFormat:@"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890%C.:%%", (unsigned short)0x00B0] sizeWithAttributes:alignRightAttributes].height;
+		self.textRectHeight = [[NSString stringWithFormat:@"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890%C.:%%", (unsigned short)0x00B0] sizeWithAttributes:self.alignRightAttributes].height;
     }
     else {
         NSLog(@"Couldn't change to a nil font.");

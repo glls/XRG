@@ -29,7 +29,7 @@
 
 @implementation XRGMemoryMiner
 
-- (id)init {
+- (instancetype)init {
 	self = [super init];
 	if (self) {
 		host = mach_host_self();
@@ -38,7 +38,8 @@
 		values2 = [[XRGDataSet alloc] init];
 		values3 = [[XRGDataSet alloc] init];
 		
-		usedSwap = totalSwap = 0.;
+		self.usedSwap = 0;
+		self.totalSwap = 0;
 		
 		int mib[2] = { CTL_HW, HW_PAGESIZE };
 		size_t sz = sizeof(pageSize);
@@ -60,19 +61,6 @@
         [values3 resize:(size_t)newNumSamples];
     }
     else {
-        if (values1) {
-            [values1 release];
-            values1 = nil;
-        }
-        if (values2) {
-            [values2 release];
-            values2 = nil;
-        }
-        if (values3) {
-            [values3 release];
-            values3 = nil;
-        }
-        
         values1 = [[XRGDataSet alloc] init];
         values2 = [[XRGDataSet alloc] init];
         values3 = [[XRGDataSet alloc] init];
@@ -123,10 +111,10 @@
     struct xsw_usage swapInfo;
     size_t swapLength = sizeof(swapInfo);
     if (sysctl(vmmib, 2, &swapInfo, &swapLength, NULL, 0) >= 0) {
-		usedSwap = swapInfo.xsu_used;
-		totalSwap = swapInfo.xsu_total;
+		self.usedSwap = swapInfo.xsu_used;
+		self.totalSwap = swapInfo.xsu_total;
 //		NSLog(@"Used: %d (%3.2fM)    Total: %d (%3.2fM)", usedSwap, (float)usedSwap / 1024. / 1024., totalSwap, (float)totalSwap / 1024. / 1024.);
-    }		
+    }
 }
 
 // actually kilobytes, not bytes
@@ -176,14 +164,6 @@
 
 - (u_int32_t)totalCacheHits {
     return lastStats.hits;
-}
-
-- (u_int64_t)usedSwap {
-	return usedSwap;
-}
-
-- (u_int64_t)totalSwap {
-	return totalSwap;
 }
 
 - (XRGDataSet *)faultData {

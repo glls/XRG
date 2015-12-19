@@ -34,15 +34,13 @@
 @implementation XRGBackgroundView
 
 - (void)awakeFromNib {  
-    parentWindow = (XRGGraphWindow *)[[self window] retain]; 
+    parentWindow = (XRGGraphWindow *)[self window]; 
     
-    appSettings = [[parentWindow appSettings] retain];
-    moduleManager = [[parentWindow moduleManager] retain];
+    appSettings = [parentWindow appSettings];
+    moduleManager = [parentWindow moduleManager];
     
- 	@synchronized(hostname) {
-		hostname = [@"XRG" retain];
-    }
-	[NSThread detachNewThreadSelector:@selector(getHostname) toTarget:self withObject:nil];
+	self.hostname = @"XRG";
+	[self getHostname];
 	
     // Find out whether or not the App's UI is being displayed.
     NSString *plistPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"/Contents/Info.plist"];
@@ -58,7 +56,7 @@
                                                                   errorDescription:&error];
         
         if (d) {
-            if (![d objectForKey:@"NSUIElement"] || [[d objectForKey:@"NSUIElement"] isEqualToString:@"NO"]) {
+            if (!d[@"NSUIElement"] || [d[@"NSUIElement"] isEqualToString:@"NO"]) {
                 uiIsHidden = NO;
             }
             else {
@@ -69,12 +67,17 @@
     
     isVertical = YES;
     inInner = inOuter = inHeader = NO;
-    clickedMinimized = NO;
+    self.clickedMinimized = NO;
     lastWidth = [self frame].size.width;
     
-    [self registerForDraggedTypes:[NSArray arrayWithObjects: NSFilenamesPboardType, nil]];
+    [self registerForDraggedTypes:@[NSFilenamesPboardType]];
     
     [parentWindow setBackgroundView: self];
+}
+
+- (void)setFrame:(NSRect)frame {
+	[super setFrame:frame];
+	[parentWindow.moduleManager windowChangedToSize:self.frame.size];
 }
 
 - (void)offsetDrawingOrigin:(NSSize)offset {
@@ -150,9 +153,7 @@
 
     NSString *title = [appSettings windowTitle];
     if (!title || [title isEqualToString:@""]) {
-		@synchronized(hostname) {	
-			[hostname drawInRect:titleRect withAttributes:[appSettings alignCenterAttributes]];
-		}
+		[self.hostname drawInRect:titleRect withAttributes:[appSettings alignCenterAttributes]];
     }
     else {
         [title drawInRect:titleRect withAttributes:[appSettings alignCenterAttributes]];
@@ -162,32 +163,28 @@
 }
 
 - (void)getHostname {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-    NSProcessInfo *proc = [NSProcessInfo processInfo];
-    NSString *s = [proc hostName];
-    NSRange r = [s rangeOfString:@"."];
-    
-	NSString *newHostname = @"XRG";
-    if (r.location == NSNotFound) {
-		if ([s length] > 0)	newHostname = s;
-    }
-    else {
-		if (r.location != 0) newHostname = [s substringToIndex:r.location];
-    }
-	
-	@synchronized(self) {
-		if (hostname) {
-			[hostname release];
-			hostname = nil;
-		}
+	// Run this in a background thread because it might take a little bit of time.
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		NSProcessInfo *proc = [NSProcessInfo processInfo];
+		NSString *s = [proc hostName];
+		NSRange r = [s rangeOfString:@"."];
 		
-		hostname = [newHostname retain];
+		NSString *newHostname = @"XRG";
+		if (r.location == NSNotFound) {
+			if ([s length] > 0)	newHostname = s;
+		}
+		else {
+			if (r.location != 0) newHostname = [s substringToIndex:r.location];
+		}
+		self.hostname = newHostname;
+
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self setNeedsDisplay:YES];
+		});
+	});
+
+	@autoreleasepool {
 	}
-	
-	[self setNeedsDisplay:YES];
-	
-	[pool release];
 }
 
 - (BOOL)shouldDelayWindowOrderingForEvent:(NSEvent *)theEvent {       
@@ -237,16 +234,16 @@
 		NSRect headerRect = NSMakeRect(frame.origin.x + borderWidth, frame.origin.y + frame.size.height - borderWidth - [appSettings textRectHeight], frame.size.width, [appSettings textRectHeight]);
         if (NSPointInRect(viewPointClicked, headerRect)) {
             if ([parentWindow minimized]) {
-                clickedMinimized = NO;
+                self.clickedMinimized = NO;
                 [self expandWindow];
             }
             else {
-                if (clickedMinimized == NO) {
-                    clickedMinimized = YES;
+                if (self.clickedMinimized == NO) {
+                    self.clickedMinimized = YES;
                     [self minimizeWindow];
                 }
                 else {
-                    clickedMinimized = NO;
+                    self.clickedMinimized = NO;
                     
                     // If the window was brought to the front when expanding, we need to put it back.
                     [parentWindow setLevel:originalWindowLevel];
@@ -313,14 +310,14 @@
     // Hide the modules.
     NSArray *a = [moduleManager displayList];
     for (i = 0; i < [a count]; i++) {
-        XRGGenericView *ref = [[a objectAtIndex:i] reference];
+        XRGGenericView *ref = [a[i] reference];
         if (ref != nil) {
             [ref setHidden:YES];
         }
     }
     
     // Resize the window.
-    [parentWindow setWindowRect:windowFrame animate:YES];
+	[parentWindow setFrame:windowFrame display:YES animate:YES];
     
     // Put the window level back where it was.
     if ([appSettings foregroundWhenExpanding]) {
@@ -377,7 +374,7 @@
         [parentWindow setLevel:NSFloatingWindowLevel];
 
     // Finally, resize the window.
-    [parentWindow setWindowRect:windowFrame animate:YES];
+	[parentWindow setFrame:windowFrame display:YES animate:YES];
 	
 	// Reset the cursor rects.
 	[self resetCursorRects];
@@ -385,7 +382,7 @@
 	// Show the modules again.
     NSArray *a = [moduleManager displayList];
     for (i = 0; i < [a count]; i++) {
-        XRGGenericView *ref = [[a objectAtIndex:i] reference];
+        XRGGenericView *ref = [a[i] reference];
         if (ref != nil) {
             [ref setHidden:NO];
         }
@@ -401,36 +398,29 @@
 
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"About XRG" action:@selector(openAboutBox:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
 
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Preferences..." action:@selector(openPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
 
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"XRG Help" action:@selector(openHelp:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
     [myMenu addItem:[NSMenuItem separatorItem]];
 
     if (uiIsHidden) {
         tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Show XRG Dock Icon (After Restart)" action:@selector(showUI:) keyEquivalent:@""];
         [myMenu addItem:tMI];
-        [tMI release];
     }
     else {
         tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Hide XRG Dock Icon (After Restart)" action:@selector(hideUI:) keyEquivalent:@""];
         [myMenu addItem:tMI];
-        [tMI release];
     }
 
     [myMenu addItem:[NSMenuItem separatorItem]];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Quit XRG" action:@selector(quit:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    [tMI release];
     
-    [myMenu autorelease];
     return myMenu;
 }
 
@@ -466,11 +456,10 @@
     if (!d) {
         NSRunInformationalAlertPanel(@"Error", @"Failed to modify the application settings.", @"OK", nil, nil);
         NSLog(@"%@", error);
-        [error release];
         return;
     }
     else {
-        [d setObject: @"YES" forKey:@"NSUIElement"];
+        d[@"NSUIElement"] = @"YES";
         
         NSData *newPlist = [NSPropertyListSerialization dataFromPropertyList:d
                                                                       format:NSPropertyListXMLFormat_v1_0
@@ -483,13 +472,12 @@
         }
         else {
 			NSLog(@"%@", error);
-            [error release];
             return;
         }
     }
     
     // Finally, touch our .app directory to update the cache.
-    [NSTask launchedTaskWithLaunchPath:@"/usr/bin/touch" arguments:[NSArray arrayWithObject:[[NSBundle mainBundle] bundlePath]]];    
+    [NSTask launchedTaskWithLaunchPath:@"/usr/bin/touch" arguments:@[[[NSBundle mainBundle] bundlePath]]];    
     
     NSRunInformationalAlertPanel(@"Hiding the XRG Dock Icon", @"Please re-launch XRG for changes to take effect.", @"OK", nil, nil);
     uiIsHidden = YES;
@@ -515,11 +503,10 @@
     if (!d) {
         NSRunInformationalAlertPanel(@"Error", @"Failed to modify the application settings.", @"OK", nil, nil);
         NSLog(@"%@", error);
-        [error release];
         return;
     }
     else {
-        [d setObject: @"NO" forKey:@"NSUIElement"];
+        d[@"NSUIElement"] = @"NO";
         
         NSData *newPlist = [NSPropertyListSerialization dataFromPropertyList:d
                                                                       format:NSPropertyListXMLFormat_v1_0
@@ -532,13 +519,12 @@
         }
         else {
 			NSLog(@"%@", error);
-            [error release];
             return;
         }
     }
     
     // Finally, touch our .app directory to update the cache.
-    [NSTask launchedTaskWithLaunchPath:@"/usr/bin/touch" arguments:[NSArray arrayWithObject:[[NSBundle mainBundle] bundlePath]]];    
+    [NSTask launchedTaskWithLaunchPath:@"/usr/bin/touch" arguments:@[[[NSBundle mainBundle] bundlePath]]];    
 
     NSRunInformationalAlertPanel(@"Showing the XRG Dock Icon", @"Please re-launch XRG for changes to take effect.", @"OK", nil, nil);
     uiIsHidden = NO;
@@ -558,7 +544,7 @@
     if ( [[pasteBoard types] containsObject:NSFilenamesPboardType] ) {
         if (sourceDragMask & NSDragOperationCopy) {
             NSArray *files = [pasteBoard propertyListForType:NSFilenamesPboardType];
-            if ([files count] == 1 && [[files objectAtIndex:0] hasSuffix:@".xtf"]) {
+            if ([files count] == 1 && [files[0] hasSuffix:@".xtf"]) {
                 return NSDragOperationCopy;
             }
             else {
@@ -576,7 +562,7 @@
         NSArray *files = [pasteBoard propertyListForType:NSFilenamesPboardType];
         
         // Check the same conditions as in draggingEntered:
-        if ([files count] == 1 && [[files objectAtIndex:0] hasSuffix:@".xtf"]) {
+        if ([files count] == 1 && [files[0] hasSuffix:@".xtf"]) {
             NSString *path;
             NSData *themeData;
             NSString *error;        
@@ -584,7 +570,7 @@
             NSDictionary *themeDictionary;
             
             /* if successful, open file under designated name */
-            path = [files objectAtIndex:0];
+            path = files[0];
 
             themeData = [NSData dataWithContentsOfFile:path];
             
@@ -600,7 +586,6 @@
             if (!themeDictionary) {
                 NSRunInformationalAlertPanel(@"Error", @"The theme file dragged is not a valid theme file.", @"OK", nil, nil);
 				NSLog(@"%@", error);
-                [error release];
             }
             else {
 				[appSettings readXTFDictionary:themeDictionary];                
@@ -633,23 +618,16 @@
 	trackingRect = [self addTrackingRect:bounds owner:self userData:nil assumeInside:NO];
 }
 
-- (void)setResizeRects:(NSArray *)rects {
-	if (resizeRects != rects) {
-		if (resizeRects) [resizeRects autorelease];
-		resizeRects = [rects retain];
-	}
-}
-
 - (void)mouseEntered:(NSEvent *)theEvent {
 	//    NSLog(@"mouseEntered start\n");
-	if (clickedMinimized && [appSettings autoExpandGraph]) {
+	if (self.clickedMinimized && [appSettings autoExpandGraph]) {
 		[self expandWindow];
 	}
 }
 
 - (void)mouseExited:(NSEvent *)theEvent {
 	//    NSLog(@"mouseEntered start\n");
-	if (clickedMinimized && [appSettings autoExpandGraph]) {
+	if (self.clickedMinimized && [appSettings autoExpandGraph]) {
 		[self minimizeWindow];
 	}
 }

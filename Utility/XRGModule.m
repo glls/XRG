@@ -26,7 +26,7 @@
 
 
 #import "XRGModule.h"
-
+#import "XRGGenericView.h"
 
 @implementation XRGModule
 
@@ -54,226 +54,115 @@
 }
 
 - (XRGModule *)init {
-    name = nil;
-    reference = nil;
-    
-    isDisplayed = YES;
-    displayOrder = -1;
-    
-    maxHeight = 1000.0f;
-    minHeight = 30.0f;
-    minWidth = 30.0f;
-    currentSize = [XRGModule savedSizeForModule:nil];
-    
-    doesMin30Update = NO;
-    doesMin5Update = NO;
-    doesGraphUpdate = YES;
-    doesFastUpdate = NO;
-    alwaysDoesGraphUpdate = NO;
-    
-    isEmptyModule = YES;
-    
+	if (self = [super init]) {
+		self.name = nil;
+		self.reference = nil;
+		
+		self.isDisplayed = YES;
+		self.displayOrder = -1;
+		
+		self.maxHeight = 1000.0f;
+		self.minHeight = 30.0f;
+		self.minWidth = 30.0f;
+		self.currentSize = [XRGModule savedSizeForModule:nil];
+		
+		self.doesMin30Update = NO;
+		self.doesMin5Update = NO;
+		self.doesGraphUpdate = YES;
+		self.doesFastUpdate = NO;
+		self.alwaysDoesGraphUpdate = NO;
+		
+		self.isEmptyModule = YES;
+	}
+	
     return self;
 }
 
 - (XRGModule *)initWithName:(NSString *)n {
-    if (n != nil) {
-        name = [n retain];
-    }
-    else {
-        name = nil;
-    }
-    reference = nil;
-    
-    isDisplayed = YES;
-    displayOrder = -1;
-    
-    maxHeight = 1000.0f;
-    minHeight = 30.0f;
-    minWidth = 30.0f;
-    currentSize = [XRGModule savedSizeForModule:self];
-    
-    doesMin30Update = NO;
-    doesMin5Update = NO;
-    doesGraphUpdate = YES;
-    doesFastUpdate = NO;
-    alwaysDoesGraphUpdate = NO;
-    
-    isEmptyModule = NO;
-    
+	if (self = [self init]) {
+		self.name = n;
+		self.currentSize = [XRGModule savedSizeForModule:self];
+		self.isEmptyModule = NO;
+	}
+	
     return self;
 }
 
 - (XRGModule *)initWithName:(NSString *)n andReference:(XRGGenericView *)r {
-    if (n != nil) name = [n retain];
-    else          name = nil;
-    
-    if (r != nil) reference = [r retain];
-    else          reference = nil;
-    
-    isDisplayed = YES;
-    displayOrder = -1;
-    
-    maxHeight = 1000.0f;
-    minHeight = 30.0f;
-    minWidth = 30.0f;
-    currentSize = [XRGModule savedSizeForModule:self];
-    
-    doesMin30Update = NO;
-    doesMin5Update = NO;
-    doesGraphUpdate = YES;
-    doesFastUpdate = NO;
-    alwaysDoesGraphUpdate = NO;
-    
-    isEmptyModule = NO;
-    
+	if (self = [self init]) {
+		self.name = n;
+		self.reference = r;
+		self.currentSize = [XRGModule savedSizeForModule:self];
+		self.isEmptyModule = NO;
+	}
+	
     return self;
 }
 
 - (void)setName:(NSString *)n {
-    if (name != nil) [name autorelease];
-    if (n != nil) {
-        name = [n retain];
-        isEmptyModule = NO;
-    }
-    else {
-        name = nil;
-    }
+	_name = n;
+	if (_name) self.isEmptyModule = NO;
 }
 
 - (void)setReference:(XRGGenericView *)r {
-    if (reference != nil) [reference autorelease];
-    if (r != nil) {
-        reference = [r retain];
-        isEmptyModule = NO;
-    }
-    else {
-        reference = nil;
-    }
+	_reference = r;
+	if (_reference) self.isEmptyModule = NO;
 }
 
-- (void)setIsDisplayed:(bool)d {
-    isDisplayed = d;
-    
-    isEmptyModule = NO;
+- (void)setIsDisplayed:(BOOL)d {
+    _isDisplayed = d;
+    self.isEmptyModule = NO;
 }
 
-- (void)setDisplayOrder:(int)order {
-    displayOrder = order;
-    
-    isEmptyModule = NO;
+- (void)setDisplayOrder:(NSInteger)order {
+    _displayOrder = order;
+    self.isEmptyModule = NO;
 }
 
-- (void)setMaxHeight:(float)h {
-    maxHeight = h;
-    
-    isEmptyModule = NO;
+- (void)setMaxHeight:(CGFloat)h {
+    _maxHeight = h;
+    self.isEmptyModule = NO;
 }
 
-- (void)setMinHeight:(float)h {
-    minHeight = h;
-    
-    isEmptyModule = NO;
+- (void)setMinHeight:(CGFloat)h {
+    _minHeight = h;
+	self.isEmptyModule = NO;
 }
 
-- (void)setMinWidth:(float)w {
-    minWidth = w;
-    
-    isEmptyModule = NO;
+- (void)setMinWidth:(CGFloat)w {
+    _minWidth = w;
+	self.isEmptyModule = NO;
 }
 
 - (void)setCurrentSize:(NSSize)newSize {
-    currentSize = newSize;
-    
+    _currentSize = newSize;
 	[XRGModule saveSizeForModule:self];
-	
-    isEmptyModule = NO;
+	self.isEmptyModule = NO;
 }
 
-- (void)setDoesMin30Update:(bool)yesNo {
-    doesMin30Update = yesNo;
-    
-    isEmptyModule = NO;
+- (void)setDoesMin30Update:(BOOL)yesNo {
+    _doesMin30Update = yesNo;
+	self.isEmptyModule = NO;
 }
 
-- (void)setDoesMin5Update:(bool)yesNo {
-    doesMin5Update = yesNo;
-    
-    isEmptyModule = NO;
+- (void)setDoesMin5Update:(BOOL)yesNo {
+    _doesMin5Update = yesNo;
+	self.isEmptyModule = NO;
 }
 
-- (void)setDoesGraphUpdate:(bool)yesNo {
-    doesGraphUpdate = yesNo;
-    
-    isEmptyModule = NO;
+- (void)setDoesGraphUpdate:(BOOL)yesNo {
+    _doesGraphUpdate = yesNo;
+	self.isEmptyModule = NO;
 }
 
-- (void)setDoesFastUpdate:(bool)yesNo {
-    doesFastUpdate = yesNo;
-    
-    isEmptyModule = NO;
+- (void)setDoesFastUpdate:(BOOL)yesNo {
+    _doesFastUpdate = yesNo;
+	self.isEmptyModule = NO;
 }
 
-- (void)setAlwaysDoesGraphUpdate:(bool)yesNo {
-    alwaysDoesGraphUpdate = yesNo;
-    
-    isEmptyModule = NO;
-}
-
-- (NSString *)name {
-    return name;
-}
-
-- (XRGGenericView *)reference {
-    return reference;
-}
-
-- (bool)isDisplayed {
-    return isDisplayed;
-}
-
-- (int)displayOrder {
-    return displayOrder;
-}
-
-- (float)maxHeight {
-    return maxHeight;
-}
-
-- (float)minHeight {
-    return minHeight;
-}
-
-- (float)minWidth {
-    return minWidth;
-}
-
-- (NSSize)currentSize {
-    return currentSize;
-}
-
-- (bool)doesMin30Update {
-    return doesMin30Update;
-}
-
-- (bool)doesMin5Update {
-    return doesMin5Update;
-}
-
-- (bool)doesGraphUpdate {
-    return doesGraphUpdate;
-}
-
-- (bool)doesFastUpdate {
-    return doesFastUpdate;
-}
-
-- (bool)alwaysDoesGraphUpdate {
-    return alwaysDoesGraphUpdate;
-}
-
-- (bool)isEmptyModule {
-    return isEmptyModule;
+- (void)setAlwaysDoesGraphUpdate:(BOOL)yesNo {
+    _alwaysDoesGraphUpdate = yesNo;
+	self.isEmptyModule = NO;
 }
 
 @end

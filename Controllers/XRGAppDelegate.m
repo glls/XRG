@@ -28,14 +28,6 @@
 #import "XRGGraphWindow.h"
 
 @implementation XRGAppDelegate
-@synthesize xrgGraphWindow, prefController;
-
-- (void) dealloc {
-	[xrgGraphWindow release];
-	[prefController release];
-	
-	[super dealloc];
-}
 
 - (IBAction) showPrefs:(id)sender {
     if(!self.prefController) [NSBundle loadNibNamed:@"Preferences.nib" owner:self];
@@ -79,11 +71,12 @@
 }
 
 - (void) applicationDidFinishLaunching:(NSNotification *)aNotification {
-	[[self.xrgGraphWindow moduleManager] windowChangedToSize:self.xrgGraphWindow.frame.size];
+	[self.xrgGraphWindow.moduleManager windowChangedToSize:self.xrgGraphWindow.frame.size];
 	
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:XRG_windowIsMinimized]) {
 		// minimize the window.
-		[[self.xrgGraphWindow backgroundView] minimizeWindow];
+		[self.xrgGraphWindow.backgroundView minimizeWindow];
+		[self.xrgGraphWindow.backgroundView setClickedMinimized:YES];
 	}
 }
 
@@ -109,10 +102,9 @@
 	if (!themeDictionary) {
 		NSRunInformationalAlertPanel(@"Error", @"The theme file dragged is not a valid theme file.", @"OK", nil, nil);
 		NSLog(@"%@", error);
-		[error release];
 	}
 	else {
-		[[self.xrgGraphWindow appSettings] readXTFDictionary:themeDictionary];
+		[self.xrgGraphWindow.appSettings readXTFDictionary:themeDictionary];
 		[self.xrgGraphWindow display];
 	}
 

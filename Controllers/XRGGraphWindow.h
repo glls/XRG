@@ -25,7 +25,6 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "XRGFramelessWindow.h"
 #import "XRGCPUView.h"
 #import "XRGNetView.h"
 #import "XRGDiskView.h"
@@ -33,63 +32,52 @@
 #import "XRGWeatherView.h"
 #import "XRGStockView.h"
 #import "XRGBatteryView.h"
+#import "XRGGPUView.h"
 #import "XRGTemperatureView.h"
 #import "XRGBackgroundView.h"
 #import "XRGSettings.h"
 #import "XRGModuleManager.h"
 
-@interface XRGGraphWindow : XRGFramelessWindow
-{
-    // Timers
-    NSTimer						*min30Timer;
-    NSTimer                     *min5Timer;
-    NSTimer						*graphTimer;
-    NSTimer						*fastTimer;
-    
-    // Module references
-    NSWindow					*parentWindow;
-    
-    // Settings
-    NSFontManager               *fontManager;
-    
-    // Outlets
-    IBOutlet id					preferenceWindow;
-    IBOutlet id                 controller;
-    
-    XRGURL						*xrgCheckURL;
-	
-	XRGSettings					*appSettings;
-	XRGModuleManager			*moduleManager;
-	
-	XRGCPUView					*cpuView;
-	XRGNetView					*netView;
-	XRGDiskView					*diskView;
-	XRGMemoryView				*memoryView;
-	XRGWeatherView				*weatherView;
-	XRGStockView				*stockView;
-	XRGBatteryView				*batteryView;
-	XRGTemperatureView			*temperatureView;
-	XRGTemperatureMiner			*temperatureMiner;
-	IBOutlet id					backgroundView;
-}
-@property (retain) XRGSettings *appSettings;
-@property (retain) XRGModuleManager *moduleManager;
+@interface XRGGraphWindow : NSWindow
 
-@property (retain) XRGCPUView *cpuView;
-@property (retain) XRGNetView *netView;
-@property (retain) XRGDiskView *diskView;
-@property (retain) XRGMemoryView *memoryView;
-@property (retain) XRGWeatherView *weatherView;
-@property (retain) XRGStockView *stockView;
-@property (retain) XRGBatteryView *batteryView;
-@property (retain) XRGTemperatureView *temperatureView;
-@property (retain) XRGTemperatureMiner *temperatureMiner;
-@property (retain,nonatomic) IBOutlet id backgroundView;
+@property int borderWidth;
+//@property NSSize minSize;
+@property BOOL minimized;
+
+// Timers
+@property NSTimer *min30Timer;
+@property NSTimer *min5Timer;
+@property NSTimer *graphTimer;
+@property NSTimer *fastTimer;
+
+// Settings
+@property NSFontManager *fontManager;
+    
+// Outlets
+@property IBOutlet id preferenceWindow;
+@property IBOutlet XRGAppDelegate *controller;
+    
+@property XRGURL *xrgCheckURL;
+
+@property XRGSettings *appSettings;
+@property XRGModuleManager *moduleManager;
+
+@property XRGCPUView *cpuView;
+@property XRGGPUView *gpuView;
+@property XRGNetView *netView;
+@property XRGDiskView *diskView;
+@property XRGMemoryView *memoryView;
+@property XRGWeatherView *weatherView;
+@property XRGStockView *stockView;
+@property XRGBatteryView *batteryView;
+@property XRGTemperatureView *temperatureView;
+@property XRGTemperatureMiner *temperatureMiner;
+@property (nonatomic) IBOutlet id backgroundView;
 
 // Initialization
 + (void)initialize;
-+ (NSMutableDictionary*) getDefaultPrefs;
-- (void) setupSettingsFromDictionary:(NSDictionary *) defs;
++ (NSMutableDictionary*)getDefaultPrefs;
+- (void)setupSettingsFromDictionary:(NSDictionary *) defs;
 - (bool)systemJustWokeUp;
 - (void)setSystemJustWokeUp:(bool)yesNo;
 - (void)checkServerForUpdates;
@@ -97,8 +85,6 @@
 - (bool)isVersion:(NSString *)latestVersion laterThanVersion:(NSString *)currentVersion;
 - (XRGSettings *)appSettings;
 - (XRGModuleManager *)moduleManager;
-- (XRGAppDelegate *)controller;
-- (void)setController:(XRGAppDelegate *)c;
 
 // Timer methods
 - (void)initTimers;
@@ -108,10 +94,11 @@
 - (void)fastUpdate:(NSTimer *)aTimer;
 
 // Methods that set up module references
-- (void)setBackgroundView:(id)background0;
+- (void)setBackgroundView:(id)background;
 
 // Actions
 - (IBAction)setShowCPUGraph:(id)sender;
+- (IBAction)setShowGPUGraph:(id)sender;
 - (IBAction)setShowNetGraph:(id)sender;
 - (IBAction)setShowDiskGraph:(id)sender;
 - (IBAction)setShowMemoryGraph:(id)sender;
