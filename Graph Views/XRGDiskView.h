@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -36,17 +36,23 @@
     int						numSamples;
     XRGModule				*m;
     
-    int						*values;
-    int						*readValues;
-    int						*writeValues;
-    int						currentIndex;
-    int						maxVal;
+    UInt64					*values;
+    UInt64					*readValues;
+    UInt64					*writeValues;
+    int                     currentIndex;
+    UInt64					maxVal;
     
-    int						readBytes;
-    int						writeBytes;
-    int						totalDiskIO;
-	long long				diskIOSinceLaunch;
-    
+    UInt64					readBytes;
+    UInt64					writeBytes;
+    UInt64					totalDiskIO;
+	UInt64                  diskIOSinceLaunch;
+	
+	UInt64					fastReadBytes;
+	UInt64					fastWriteBytes;
+	UInt64					fastMax;
+	io_stats				fast_i;
+	io_stats				fast_o;
+
     mach_port_t         	masterPort;
     io_iterator_t       	drivelist;  /* needs release */
 	NSMutableArray			*volumeInfo;

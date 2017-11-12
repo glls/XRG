@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -50,6 +50,9 @@
 
 @property NSString *hostname;
 @property NSArray *resizeRects;
+
+@property NSBezierPath *outerPath;
+@property NSBezierPath *innerPath;
 
 @property BOOL clickedMinimized;
 

@@ -1,6 +1,6 @@
 /*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -74,11 +74,10 @@
 }
 
 - (void)updateMinSize {
-	float height = [appSettings textRectHeight] * 2;
 	float width = [@"GPU 9: 9999M" sizeWithAttributes:[appSettings alignRightAttributes]].width + 6;
 	
 	[m setMinWidth: width];
-	[m setMinHeight: height];
+    [m setMinHeight: XRG_MINI_HEIGHT];
 }
 
 - (void)graphUpdate:(NSTimer *)aTimer {
@@ -91,10 +90,48 @@
 	
 	NSGraphicsContext *gc = [NSGraphicsContext currentContext];
 	
+    [[appSettings graphBGColor] set];
+    NSRect bounds = [self bounds];
+    CGContextFillRect(gc.CGContext, bounds);
+
 #ifdef XRG_DEBUG
 	NSLog(@"In Graphics DrawRect.");
 #endif
 	
+    if ([self shouldDrawMiniGraph]) {
+        [self drawMiniGraph];
+    }
+    else {
+        [self drawGraph];
+    }
+}
+
+- (void)drawMiniGraph {
+    NSArray<XRGDataSet *> *totalValues = [graphicsMiner totalVRAMDataSets];
+    NSArray<XRGDataSet *> *freeValues = [graphicsMiner freeVRAMDataSets];
+    if ((totalValues.count != freeValues.count) || (totalValues.count == 0)) {
+        [self drawLeftText:@"GPU" centerText:nil rightText:@"n/a" inRect:[self paddedTextRect]];
+        return;
+    }
+
+    NSMutableArray<NSNumber *> *cardMemoryPercentUsed = [NSMutableArray array];
+    CGFloat memoryUsedMB = 0;
+    for (NSInteger i = 0; i < totalValues.count; i++) {
+        CGFloat t = [totalValues[i] currentValue];
+        CGFloat f = [freeValues[i] currentValue];
+        
+        memoryUsedMB += (t - f) / 1024. / 1024.;
+        
+        CGFloat percentUsed = (t - f) / t * 100.;
+        [cardMemoryPercentUsed addObject:@(percentUsed)];
+    }
+    
+    [self drawMiniGraphWithValues:cardMemoryPercentUsed upperBound:100 lowerBound:0 leftLabel:@"GPU" rightLabel:[NSString stringWithFormat:@"%dM", (int)round(memoryUsedMB)]];
+}
+
+- (void)drawGraph {
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
+
 	NSArray *cpuWaitValues = [graphicsMiner cpuWaitDataSets];
 	NSArray *totalValues = [graphicsMiner totalVRAMDataSets];
 	NSArray *freeValues = [graphicsMiner freeVRAMDataSets];
@@ -106,8 +143,6 @@
 	CGFloat graphHeight = graphSize.height / totalValues.count;
 	for (NSInteger i = 0; i < totalValues.count; i++) {
 		NSRect graphRect = NSMakeRect(0, (totalValues.count - i - 1) * floor(graphHeight), numSamples, floor(graphHeight) - 1);
-		[[appSettings graphBGColor] set];
-		NSRectFill(graphRect);
 
 		// Draw the graph.
 		[gc setShouldAntialias:[appSettings antiAliasing]];
@@ -127,10 +162,7 @@
 		[self drawGraphWithDataFromDataSet:cpuWaitValues[i] maxValue:MAX([cpuWaitValues[i] max], 100) inRect:graphRect flipped:NO filled:NO color:[appSettings graphFG2Color]];
 		
 		// Draw the text
-		[gc setShouldAntialias:[appSettings antialiasText]];
-		NSRect textRect = graphRect;
-		textRect.origin.x += 3;
-		textRect.size.width -= 6;
+        NSRect textRect = NSInsetRect(graphRect, 3, 0);
 		CGFloat t = [(XRGDataSet *)totalValues[i] currentValue];
 		CGFloat f = [(XRGDataSet *)freeValues[i] currentValue];
 		
@@ -154,21 +186,29 @@
 			waitText = [NSString stringWithFormat:@"%d s", (int)(w / 1000000000)];
 		}
 		
+        NSString *leftText = nil;
+        NSString *rightText = nil;
+        NSString *centerText = nil;
+        
+        NSString *gpuTitle = totalValues.count < 2 ? @"GPU" : [NSString stringWithFormat:@"GPU %d", (int)i + 1];
+        
 		NSString *vendorString = graphicsMiner.vendorNames[i];
 		if (textRect.size.width < 90) {
-			[[NSString stringWithFormat:@"GPU %d\n%@", (int)i, vendorString] drawInRect:textRect withAttributes:[appSettings alignLeftAttributes]];
+            leftText = [NSString stringWithFormat:@"%@\n%@", gpuTitle, vendorString];
 			if (t > 0) {
-				[[NSString stringWithFormat:@"%dM\n%@", (int)(ceil((CGFloat)(t - f) / 1024. / 1024.)), waitText] drawInRect:textRect withAttributes:[appSettings alignRightAttributes]];
+                rightText = [NSString stringWithFormat:@"%dM\n%@", (int)(ceil((CGFloat)(t - f) / 1024. / 1024.)), waitText];
 			}
 		}
 		else {
-			[[NSString stringWithFormat:@"GPU %d\n%@", (int)i, vendorString] drawInRect:textRect withAttributes:[appSettings alignCenterAttributes]];
+            centerText = [NSString stringWithFormat:@"%@\n%@", gpuTitle, vendorString];
 
 			if (t > 0) {
-				[[NSString stringWithFormat:@"%dM\n%@", (int)(ceil((CGFloat)(t - f) / 1024. / 1024.)), waitText] drawInRect:textRect withAttributes:[appSettings alignLeftAttributes]];
-				[[NSString stringWithFormat:@"%d%%", (int)((t - f) / t * 100.)] drawInRect:textRect withAttributes:[appSettings alignRightAttributes]];
+                leftText = [NSString stringWithFormat:@"%dM\n%@", (int)(ceil((CGFloat)(t - f) / 1024. / 1024.)), waitText];
+                rightText = [NSString stringWithFormat:@"%d%%", (int)((t - f) / t * 100.)];
 			}
 		}
+        
+        [self drawLeftText:leftText centerText:centerText rightText:rightText inRect:textRect];
 	}
 
 	[gc setShouldAntialias:YES];

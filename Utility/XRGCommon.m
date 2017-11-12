@@ -1,4 +1,4 @@
-/* 
+/*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
  * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
@@ -20,18 +20,24 @@
  *
  */
 
-@protocol XRGPlugin
+//
+//  XRGCommon.m
+//
 
-- (NSView *) graphView;
-- (NSView *) prefsView;
-- (NSString *) prefsIcon;
+#import "XRGCommon.h"
 
-- (NSString *) pluginName;
-- (NSString *) pluginShortName;
+@implementation XRGCommon
 
-- (NSDictionary *) fetchData;	// Returns a dictionary of keys as labels and values being the data values.
-- (void) tick5;
-- (void) tick300;
-- (void) tick1800;
++ (CGFloat)dampedMaxUsingPreviousMax:(CGFloat)previousMax currentMax:(CGFloat)currentMax baseMax:(CGFloat)baseMax {
+    return MAX(baseMax, [XRGCommon dampedValueUsingPreviousValue:previousMax currentValue:currentMax dampingCoefficient:0.95]);
+}
+
++ (CGFloat)dampedValueUsingPreviousValue:(CGFloat)previousValue currentValue:(CGFloat)currentValue {
+    return [XRGCommon dampedValueUsingPreviousValue:previousValue currentValue:currentValue dampingCoefficient:0.8];
+}
+
++ (CGFloat)dampedValueUsingPreviousValue:(CGFloat)previousValue currentValue:(CGFloat)currentValue dampingCoefficient:(CGFloat)dampingCoefficient {
+    return (previousValue * dampingCoefficient) + (currentValue * (1 - dampingCoefficient));
+}
 
 @end

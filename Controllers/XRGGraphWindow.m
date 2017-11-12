@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -45,7 +45,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [defaults registerDefaults:[self getDefaultPrefs]];
 }
 
-- (instancetype)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag {
+- (instancetype)initWithContentRect:(NSRect)contentRect styleMask:(NSWindowStyleMask)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag {
 	if (self = [super initWithContentRect:contentRect styleMask:aStyle backing:bufferingType defer:flag]) {
 		// Initialize the settings class
 		self.appSettings = [[XRGSettings alloc] init];
@@ -70,6 +70,8 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 		CFRunLoopSourceRef rls;
 		IONotificationPortRef thePortRef;
 		io_object_t notifier;
+        
+        [self setMovable:NO];
 
 		powerConnection = IORegisterForSystemPower(NULL, &thePortRef, sleepNotification, &notifier );
 
@@ -312,7 +314,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
 - (void)checkServerForUpdates {
     self.xrgCheckURL = [[XRGURL alloc] init];
-    [self.xrgCheckURL setURLString:@"http://download.gauchosoft.com/xrg/latest_version.txt"];
+    [self.xrgCheckURL setURLString:@"https://download.gauchosoft.com/xrg/latest_version.txt"];
     [self.xrgCheckURL loadURLInBackground];
 }
 
@@ -331,7 +333,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 		if ([self isVersion:s laterThanVersion:myVersion]) {
 			NSString *mesg = [NSString stringWithFormat:@"XRG %@ is now available.  You are currently running XRG %@.  If you would like visit the XRG website to upgrade, click More Info.", s, myVersion];
 			
-            NSInteger buttonClicked = NSRunInformationalAlertPanel(@"Alert", mesg, @"More Info", @"Disable Checking", @"Not Yet");
+            NSInteger buttonClicked = NSRunInformationalAlertPanel(@"Alert", @"%@", @"More Info", @"Disable Checking", @"Not Yet", mesg);
             
             switch(buttonClicked) {
                 case -1:		// Not Yet
@@ -488,7 +490,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 														  repeats:YES];
     }
     if (!self.fastTimer) {
-		self.fastTimer = [NSTimer scheduledTimerWithTimeInterval:0.2
+		self.fastTimer = [NSTimer scheduledTimerWithTimeInterval:0.125
 														  target:self
 														selector:@selector(fastUpdate:)
 														userInfo:nil
@@ -608,8 +610,8 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 - (IBAction)setBorderWidthAction:(id)sender {
     [self.backgroundView expandWindow];
     [self setBorderWidth: [sender intValue]];
-    [self.moduleManager windowChangedToSize:self.parentWindow.frame.size];
     [self setMinSize:[self.moduleManager getMinSize]];
+    [self.moduleManager windowChangedToSize:[self frame].size];
 }
 
 - (IBAction)setGraphOrientation:(id)sender {
@@ -829,7 +831,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
         [self.appSettings setNetworkInterface:@"All"];
     }
     else {
-        NSArray *interfaces = [self.netView networkInterfaces];
+        NSArray *interfaces = [self.netView.miner networkInterfaces];
         if (selectedRow - 1 < [interfaces count])
             [self.appSettings setNetworkInterface:interfaces[(selectedRow - 1)]];
         else
@@ -995,6 +997,117 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
 - (BOOL)isMovableByWindowBackground {
 	return YES;
+}
+
+- (void)sendEvent:(NSEvent *)theEvent {
+    NSEventType type = [theEvent type];
+    NSRect theEventLocationInWindowRect = NSZeroRect;
+    theEventLocationInWindowRect.origin = [theEvent locationInWindow];
+    
+    switch (type) {
+        case NSEventTypeLeftMouseDown:
+        {
+            // Check if the locationInWindow is around the window border.
+            if (NSPointInRect([theEvent locationInWindow], NSInsetRect(self.contentView.bounds, self.borderWidth, self.borderWidth))) {
+                self.draggingWindow = YES;
+                self.dragStart = [self convertRectToScreen:theEventLocationInWindowRect].origin;
+                self.originAtDragStart = [self frame].origin;
+            }
+            break;
+        }
+
+        case NSEventTypeLeftMouseDragged:
+        {
+            if (self.draggingWindow) {
+                NSPoint dragLoc = [self convertRectToScreen:theEventLocationInWindowRect].origin;
+                NSPoint newOrigin = self.originAtDragStart;
+                newOrigin.x += dragLoc.x - self.dragStart.x;
+                newOrigin.y += dragLoc.y - self.dragStart.y;
+                
+                // Snap.
+                newOrigin = [self snap:newOrigin];
+                
+                [self setFrameOrigin:newOrigin];
+            }
+            break;
+        }
+            
+        case NSEventTypeLeftMouseUp:
+        {
+            if (self.draggingWindow) {
+                self.draggingWindow = NO;
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    [super sendEvent:theEvent];
+}
+
+// sticky window code
+- (NSPoint)snap:(NSPoint)p {
+    if (![self.appSettings stickyWindow]) return p;
+
+    NSRect newRect = NSMakeRect(p.x, p.y, self.contentView.bounds.size.width, self.contentView.bounds.size.height);
+    NSPoint rectCenter = NSMakePoint(NSMidX(newRect), NSMidY(newRect));
+    
+    NSScreen *screen = [self screen];
+    for (NSScreen *s in [NSScreen screens]) {
+        // Figure out which screen the new center would be on.
+        if (NSPointInRect(rectCenter, [s frame])) {
+            screen = s;
+        }
+    }
+    if (!screen) return p;
+    
+    CGFloat snapThreshold = 20;
+    
+    NSRect screenFrame = screen.frame;
+    
+    BOOL snappedToTopOrBottom = NO;
+    BOOL snappedToLeftOrRight = NO;
+    
+    // top
+    if (screenFrame.origin.y + screenFrame.size.height - newRect.origin.y - newRect.size.height <= snapThreshold) {
+        newRect.origin.y = screenFrame.origin.y + (screenFrame.size.height - newRect.size.height);
+        snappedToTopOrBottom = YES;
+    }
+    
+    // left
+    if (newRect.origin.x - screenFrame.origin.x <= snapThreshold) {
+        newRect.origin.x = screenFrame.origin.x;
+        snappedToLeftOrRight = YES;
+    }
+    
+    // bottom
+    if (newRect.origin.y - screenFrame.origin.y <= snapThreshold) {
+        newRect.origin.y = screenFrame.origin.y;
+        snappedToTopOrBottom = YES;
+    }
+    
+    // right
+    if (screenFrame.origin.x + screenFrame.size.width - newRect.origin.x - newRect.size.width <= snapThreshold) {
+        newRect.origin.x = screenFrame.origin.x + (screenFrame.size.width - newRect.size.width);
+        snappedToLeftOrRight = YES;
+    }
+
+    // Middle top/bottom
+    if (snappedToTopOrBottom) {
+        if (fabs(NSMidX(newRect) - NSMidX(screenFrame)) <= snapThreshold) {
+            newRect.origin.x = NSMidX(screenFrame) - 0.5 * newRect.size.width;
+        }
+    }
+    
+    if (snappedToLeftOrRight) {
+        if (fabs(NSMidY(newRect) - NSMidY(screenFrame)) <= snapThreshold) {
+            newRect.origin.y = NSMidY(screenFrame) - 0.5 * newRect.size.height;
+        }
+    }
+    
+    return newRect.origin;
 }
 
 ///// End of Event Handlers /////

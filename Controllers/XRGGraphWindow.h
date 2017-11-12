@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -73,6 +73,10 @@
 @property XRGTemperatureView *temperatureView;
 @property XRGTemperatureMiner *temperatureMiner;
 @property (nonatomic) IBOutlet id backgroundView;
+
+@property BOOL draggingWindow;
+@property NSPoint originAtDragStart;
+@property NSPoint dragStart;
 
 // Initialization
 + (void)initialize;
@@ -161,7 +165,6 @@
 - (void)setWindowLevelHelper:(NSInteger)index;
 - (NSColor *)colorForTag:(NSInteger)aTag;
 - (float)transparencyForTag:(NSInteger)aTag;
-- (void)setWindowSize:(NSSize)newSize;
 - (void)checkWindowSize;
 
 - (void)cleanupBeforeExiting;

@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -35,6 +35,17 @@
 
 @class SMCSensors;
 
+@interface XRGFan: NSObject
+
+@property NSString *name;
+@property NSInteger actualSpeed;
+@property NSInteger targetSpeed;
+@property NSInteger minimumSpeed;
+@property NSInteger maximumSpeed;
+
+@end
+
+
 @interface XRGTemperatureMiner : NSObject {
     host_name_port_t			host;
     host_basic_info_data_t		hostInfo;
@@ -54,6 +65,9 @@
     SMCSensors					*smcSensors;
 }
 
+@property NSArray *fanCache;
+@property NSDate *fanCacheCreated;
+
 - (void)setDataSize:(int)newNumSamples;
 - (int)numberOfCPUs;
 
@@ -72,4 +86,7 @@
 															// released yet).
 - (NSString *)labelForKey:(NSString *)locationKey;			// return a string label for this location.
 
+- (NSArray<XRGFan *> *)fanValues;
+
 @end
+

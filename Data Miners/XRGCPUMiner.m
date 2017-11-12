@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -33,8 +33,6 @@
 #include <sys/sysctl.h>
 #import <mach/mach_host.h>
 #import <mach/vm_map.h>
-
-#undef DEBUG_2_CPUS
 
 @implementation XRGCPUMiner
 - (instancetype)init {
@@ -122,13 +120,6 @@
         [self.systemValues[i] setNextValue:immediateSystem[i]];
         [self.niceValues[i]   setNextValue:immediateNice[i]];
     }
-
-    // Debug 2 CPUs
-    #ifdef DEBUG_2_CPUS
-    [[userValues objectAtIndex:1] setNextValue:immediateUser[0]];
-    [[systemValues objectAtIndex:1] setNextValue:immediateSystem[0]];
-    [[niceValues objectAtIndex:1] setNextValue:immediateNice[0]];
-    #endif
                 
     if (self.uptime) [self setCurrentUptime];
     if (self.loadAverage) self.currentLoadAverage = [self getLoadAverage];

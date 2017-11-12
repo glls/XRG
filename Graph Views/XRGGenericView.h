@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -28,6 +28,8 @@
 #import <AppKit/AppKit.h>
 #define NOVALUE -1000
 
+#define XRG_MINI_HEIGHT ([appSettings textRectHeight])
+
 #import "XRGModule.h"
 #import "XRGSettings.h"
 #import "XRGModuleManager.h"
@@ -49,7 +51,16 @@
 
 - (void) drawRangedGraphWithDataFromDataSet:(XRGDataSet *)dataSet upperBound:(CGFloat)max lowerBound:(CGFloat)min inRect:(NSRect)rect flipped:(BOOL)flipped filled:(BOOL)filled color:(NSColor *)color;
 
+- (void) drawMiniGraphWithValues:(NSArray<NSNumber *> *)values upperBound:(double)max lowerBound:(double)min leftLabel:(NSString *)leftLabel printValueBytes:(UInt64)printValue printValueIsRate:(BOOL)isRate;
+
+- (void) drawMiniGraphWithValues:(NSArray<NSNumber *> *)values upperBound:(double)max lowerBound:(double)min leftLabel:(NSString *)leftLabel rightLabel:(NSString *)rightLabel;
+
 - (void) fillRect:(NSRect)rect withColor:(NSColor *)color;
+
+- (void)drawLeftText:(NSString *)leftText centerText:(NSString *)centerText rightText:(NSString *)rightText inRect:(CGRect)rect;
+
+- (BOOL)shouldDrawMiniGraph;
+- (NSRect)paddedTextRect;
 
 // The following methods are to be implemented in subclasses.
 - (void) setGraphSize:(NSSize)newSize;

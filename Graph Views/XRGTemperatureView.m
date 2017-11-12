@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -106,19 +106,102 @@
     #ifdef XRG_DEBUG
         NSLog(@"In Temperature DrawRect."); 
     #endif
+    
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
+    
+    [[appSettings graphBGColor] set];
+    NSRect bounds = [self bounds];
+    CGContextFillRect(gc.CGContext, bounds);
 
-    NSGraphicsContext *gc = [NSGraphicsContext currentContext]; 
+    if ([self shouldDrawMiniGraph]) {
+        [self drawMiniGraph];
+    }
+    else {
+        [self drawGraph];
+    }
+}
+
+- (void)drawMiniGraph {
+    // Get our sensor locations.
+    NSArray *locations = [TemperatureMiner locationKeysInOrder];
+    if ([locations count] == 0) {
+        [@"Temperature n/a" drawInRect:[self paddedTextRect] withAttributes:[appSettings alignLeftAttributes]];
+        return;
+    }
+    
+    // Get our main sensor index.
+    NSInteger primaryIndex = [appSettings tempFG1Location] - 1;
+    if (primaryIndex < 0 || primaryIndex >= [locations count]) {
+        primaryIndex = 0;
+    }
+    
+    // Get the label for this sensor.
+    NSString *primaryLabel = [TemperatureMiner labelForKey:locations[primaryIndex]];
+    if (!primaryLabel) {
+        [@"Temperature n/a" drawInRect:[self paddedTextRect] withAttributes:[appSettings alignLeftAttributes]];
+        return;
+    }
+
+    // Get the temperature value.
+    float primaryValue = [TemperatureMiner currentValueForKey:locations[primaryIndex]];
+    float adaptedValue = primaryValue;
+    
+    // Get the units.
+    NSString *units = [TemperatureMiner unitsForLocation:locations[primaryIndex]];
+    if (units == nil) {
+        units = @"";
+    }
+
+    // Now create the value string
+    NSString *valueString = nil;
+    if ([appSettings tempUnits] == 0 && [units isEqualToString:[NSString stringWithFormat:@"%CC", (unsigned short)0x00B0]]) {
+        units = [NSString stringWithFormat:@"%CF", (unsigned short)0x00B0];
+        adaptedValue = primaryValue * 1.8 + 32.;
+    }
+    
+    if ([units isEqualToString:@" rpm"] | [units isEqualToString:@"%"]) {
+        valueString = [NSString stringWithFormat:@"%3.0f%@", adaptedValue, units];
+    }
+    else {
+        valueString = [NSString stringWithFormat:@"%3.1f%@", adaptedValue, units];
+    }
+    
+    // Create an array with the selected temperature value and fan values to plot.
+    NSMutableArray *plotValues = [NSMutableArray array];
+    XRGDataSet *dataSet = [TemperatureMiner dataSetForKey:locations[primaryIndex]];
+    if (dataSet && dataSet.max > 0) {
+        // Scale the primary value.
+        float plotValue = (primaryValue - MIN(dataSet.min, 20)) / MAX(dataSet.max, 90) * 100;           // Use 90°C as max, or dataset.max, and 20°C as min
+        [plotValues addObject:@(plotValue)];
+    }
+    
+    // Add the fans
+    NSArray *fans = [TemperatureMiner fanValues];
+    for (XRGFan *fan in fans) {
+        if ([fan.name isEqualToString:primaryLabel]) continue;  // Already showing this one.
+        
+        if (fan.maximumSpeed > 0) {
+            [plotValues addObject:@((CGFloat)fan.actualSpeed / (CGFloat)fan.maximumSpeed * 100)];
+        }
+    }
+    
+    // Draw the mini graph.
+    [self drawMiniGraphWithValues:plotValues upperBound:100 lowerBound:0 leftLabel:primaryLabel rightLabel:valueString];
+    
+    // Draw the text.
+    [self drawLeftText:primaryLabel centerText:nil rightText:valueString inRect:[self paddedTextRect]];
+}
+
+- (void)drawGraph {
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
 
     int i;
     float textRectHeight = [appSettings textRectHeight];
 
-    NSRect textRect = NSMakeRect(3, inRect.size.height, inRect.size.width - 6, 0);
+    NSRect textRect = [self paddedTextRect];
 
     [gc setShouldAntialias:[appSettings antiAliasing]];
 
-    [[appSettings graphBGColor] set];
-    NSRectFill(inRect);
-        
     NSArray *locations = [TemperatureMiner locationKeysInOrder];
     
     if ([locations count] == 0) {
@@ -166,19 +249,17 @@
 	minValue -= 0.1 * range;
 	
     if (dataSet1) {
-		[self drawRangedGraphWithDataFromDataSet:dataSet1 upperBound:maxValue lowerBound:minValue inRect:inRect flipped:NO filled:NO color:[appSettings graphFG1Color]];
+		[self drawRangedGraphWithDataFromDataSet:dataSet1 upperBound:maxValue lowerBound:minValue inRect:self.bounds flipped:NO filled:NO color:[appSettings graphFG1Color]];
     }
     
     if (dataSet2) {
-		[self drawRangedGraphWithDataFromDataSet:dataSet2 upperBound:maxValue lowerBound:minValue inRect:inRect flipped:NO filled:NO color:[appSettings graphFG2Color]];
+		[self drawRangedGraphWithDataFromDataSet:dataSet2 upperBound:maxValue lowerBound:minValue inRect:self.bounds flipped:NO filled:NO color:[appSettings graphFG2Color]];
     }
     
     if (dataSet3) {
-		[self drawRangedGraphWithDataFromDataSet:dataSet3 upperBound:maxValue lowerBound:minValue inRect:inRect flipped:NO filled:NO color:[appSettings graphFG3Color]];
+		[self drawRangedGraphWithDataFromDataSet:dataSet3 upperBound:maxValue lowerBound:minValue inRect:self.bounds flipped:NO filled:NO color:[appSettings graphFG3Color]];
     }
 
-    [gc setShouldAntialias:YES];
-            
             
     // draw the text
     [gc setShouldAntialias:[appSettings antialiasText]];
@@ -190,7 +271,7 @@
 	
 	NSAttributedString *newline = [[NSAttributedString alloc] initWithString:@"\n" attributes:[appSettings alignLeftAttributes]];
 	
-	BOOL firstLine = YES;
+    NSInteger lineNumber = 0;
     for (i = 0; i < [locations count]; i++) {
 		NSColor *lineColor = [appSettings textColor];
 		if (i == [appSettings tempFG1Location] - 1) {
@@ -218,20 +299,14 @@
 			units = @"";
 		}
 		
-		if (locationTemperature < 0.001) continue;
+		if (locationTemperature < 0.001 && ![units isEqualToString:@" rpm"]) continue;
 
-        if (textRect.origin.y - textRectHeight > 0) {
-            textRect.origin.y -= textRectHeight;
-            textRect.size.height += textRectHeight;
-        }
-        else {
+        if ((lineNumber + 1) * textRectHeight > self.bounds.size.height) {
             break;
         }
+        lineNumber++;
         
-        if (firstLine) {
-			firstLine = NO;
-		}
-		else {
+        if (lineNumber > 1) {
 			[s appendAttributedString:newline];
 			[t appendAttributedString:newline];
         }
@@ -250,6 +325,11 @@
 		else {
 			[t appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%3.1f%@", locationTemperature, units] attributes:tAttributes]];
 		}
+    }
+    
+    if (lineNumber == 1) {
+        textRect.origin.y = 0.5 * (self.bounds.size.height - textRectHeight);
+        textRect.size.height = textRectHeight;
     }
     
     [t drawInRect:textRect];

@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2009 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -74,7 +74,10 @@
 }
 
 - (CGFloat) currentValue {
-    return self.values[self.currentIndex];
+    if (_values == NULL) return 0;
+    if (_currentIndex >= _numValues) return 0;
+    
+    return _values[_currentIndex];
 }
 
 // return an ordered list of values into the destinationArray given, assumed to be alloced already.

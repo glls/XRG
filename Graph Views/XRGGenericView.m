@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -139,6 +139,54 @@
 	[self drawRangedGraphWithData:values size:numVals currentIndex:numVals - 1 upperBound:max lowerBound:min inRect:rect flipped:flipped filled:filled color:color];
 }
 
+- (void) drawMiniGraphWithValues:(NSArray<NSNumber *> *)values upperBound:(double)max lowerBound:(double)min leftLabel:(NSString *)leftLabel printValueBytes:(UInt64)printValue printValueIsRate:(BOOL)isRate {
+    NSString *rightLabel = nil;
+    
+    if (printValue >= 1125899906842624)
+        rightLabel = [NSString stringWithFormat:@"%3.2fP%@", ((double)printValue / 1125899906842624.), isRate ? @"/s" : @""];
+    if (printValue >= 1099511627776)
+        rightLabel = [NSString stringWithFormat:@"%3.2fT%@", ((double)printValue / 1099511627776.), isRate ? @"/s" : @""];
+    else if (printValue >= 1073741824)
+        rightLabel = [NSString stringWithFormat:@"%3.2fG%@", ((double)printValue / 1073741824.), isRate ? @"/s" : @""];
+    else if (printValue >= 1048576)
+        rightLabel = [NSString stringWithFormat:@"%3.2fM%@", ((double)printValue / 1048576.), isRate ? @"/s" : @""];
+    else if (printValue >= 1024)
+        rightLabel = [NSString stringWithFormat:@"%4.1fK%@", ((double)printValue / 1024.), isRate ? @"/s" : @""];
+    else
+        rightLabel = [NSString stringWithFormat:@"%ldB%@", (long)printValue, isRate ? @"/s" : @""];
+
+    [self drawMiniGraphWithValues:values upperBound:max lowerBound:min leftLabel:leftLabel rightLabel:rightLabel];
+}
+
+- (void) drawMiniGraphWithValues:(NSArray<NSNumber *> *)values upperBound:(double)max lowerBound:(double)min leftLabel:(NSString *)leftLabel rightLabel:(NSString *)rightLabel {
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
+    
+    NSRect bounds = self.bounds;
+    NSRect barRect = bounds;
+    barRect.size.height /= values.count;
+    barRect.origin.y = barRect.origin.y + bounds.size.height - barRect.size.height;
+    CGFloat spacing = barRect.size.height > 2 ? 1 : 0;
+
+    [gc setShouldAntialias:[appSettings antiAliasing]];
+
+    [[appSettings graphFG1Color] set];
+    for (NSInteger i = 0; i < values.count; i++) {
+        if ((i == 1) && (values.count == 2)) {
+            [[appSettings graphFG2Color] set];
+        }
+        
+        double value = [values[i] doubleValue];
+        CGContextFillRect(gc.CGContext, CGRectMake(barRect.origin.x, barRect.origin.y, MAX(1, ((value - min) / (max - min)) * barRect.size.width), (i == 0) ? barRect.size.height : floor(barRect.size.height - spacing)));
+        barRect.origin.y -= barRect.size.height;
+    }
+
+    // draw the text
+    [gc setShouldAntialias:[appSettings antialiasText]];
+    [self drawLeftText:leftLabel centerText:nil rightText:rightLabel inRect:[self paddedTextRect]];
+    
+    [gc setShouldAntialias:YES];
+}
+
 - (void) fillRect:(NSRect)rect withColor:(NSColor *)color {
     NSPoint *pointsA;
     NSPoint *pointsB;
@@ -159,6 +207,63 @@
     [[NSColor blackColor] set];
     [bp appendBezierPathWithPoints:pointsB count:2];
     [bp fill];
+}
+
+- (void) drawLeftText:(NSString *)leftText centerText:(NSString *)centerText rightText:(NSString *)rightText inRect:(NSRect)rect {
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
+    [gc setShouldAntialias:[appSettings antialiasText]];
+
+    CGFloat textRectHeight = [appSettings textRectHeight];
+    
+    NSArray<NSString *> *leftLines = [leftText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    NSArray<NSString *> *centerLines = [centerText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    NSArray<NSString *> *rightLines = [rightText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    
+    if ([self shouldDrawMiniGraph]) {
+        // Draw one line centered vertically.
+        NSString *left = [leftLines firstObject];
+        NSString *center = [centerLines firstObject];
+        NSString *right = [rightLines firstObject];
+        
+        CGRect adjustedRect = rect;
+        adjustedRect.origin.y -= 0.5 * (rect.size.height - textRectHeight);
+        
+        [left drawInRect:adjustedRect withAttributes:[appSettings alignLeftAttributes]];
+        [center drawInRect:adjustedRect withAttributes:[appSettings alignCenterAttributes]];
+        [right drawInRect:adjustedRect withAttributes:[appSettings alignRightAttributes]];
+    }
+    else {
+        // Draw as many lines as we can, aligned to the top.
+        NSInteger maxDisplayLines = floor(rect.size.height / textRectHeight);
+        
+        if (leftLines.count > 0) {
+            NSArray<NSString *> *showLines = [leftLines subarrayWithRange:NSMakeRange(0, MIN(leftLines.count, maxDisplayLines))];
+            NSString *joined = [showLines componentsJoinedByString:@"\n"];
+            [joined drawInRect:rect withAttributes:[appSettings alignLeftAttributes]];
+        }
+        
+        if (centerLines.count > 0) {
+            NSArray<NSString *> *showLines = [centerLines subarrayWithRange:NSMakeRange(0, MIN(centerLines.count, maxDisplayLines))];
+            NSString *joined = [showLines componentsJoinedByString:@"\n"];
+            [joined drawInRect:rect withAttributes:[appSettings alignCenterAttributes]];
+        }
+
+        if (rightLines.count > 0) {
+            NSArray<NSString *> *showLines = [rightLines subarrayWithRange:NSMakeRange(0, MIN(rightLines.count, maxDisplayLines))];
+            NSString *joined = [showLines componentsJoinedByString:@"\n"];
+            [joined drawInRect:rect withAttributes:[appSettings alignRightAttributes]];
+        }
+    }
+    
+    [gc setShouldAntialias:[appSettings antiAliasing]];
+}
+
+- (BOOL)shouldDrawMiniGraph {
+    return self.bounds.size.height < XRG_MINI_HEIGHT * 2;
+}
+
+- (NSRect)paddedTextRect {
+    return NSInsetRect(self.bounds, 3, 0);
 }
 
 // The following methods are to be implemented in subclasses.

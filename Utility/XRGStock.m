@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2009 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -99,10 +99,10 @@
     // s = stock symbol
     // y = 0 (static)
     // g = d/w/m/v  daily, weekly, monthly, dividends
-    NSString *URLString = [NSString stringWithFormat:@"http://itable.finance.yahoo.com/table.csv?a=%ld&b=%ld&c=%ld&d=%ld&e=%ld&f=%ld&y=0&g=d&ignore=.csv&s=%@", (long)a, (long)b, (long)c, (long)d, (long)e, (long)f, self.symbol];
+    NSString *URLString = [NSString stringWithFormat:@"https://itable.finance.yahoo.com/table.csv?a=%ld&b=%ld&c=%ld&d=%ld&e=%ld&f=%ld&y=0&g=d&ignore=.csv&s=%@", (long)a, (long)b, (long)c, (long)d, (long)e, (long)f, self.symbol];
     [self.surl setURLString: URLString];
 	
-	NSString *immediateURLString = [NSString stringWithFormat:@"http://download.finance.yahoo.com/d/quotes.csv?s=%@&f=sl1d1t1c1ohgv&e=.csv", self.symbol];
+	NSString *immediateURLString = [NSString stringWithFormat:@"https://download.finance.yahoo.com/d/quotes.csv?s=%@&f=sl1d1t1c1ohgv&e=.csv", self.symbol];
 	[self.immediateURL setURLString:immediateURLString];
 
 	if ([self.surl haveGoodURL] && [self.immediateURL haveGoodURL]) self.haveGoodURL = YES;
@@ -267,6 +267,40 @@
 	}
     
     return retvals;
+}
+
+- (NSString *)priceString {
+    NSArray *a = [self getCurrentPriceAndChange];
+    if (a != nil) {
+        if ([a[0] intValue] == 0) {
+            return @"n/a";
+        }
+        else {
+            return [NSString stringWithFormat:@"$%2.2f", [a[0] floatValue]];
+        }
+    }
+    else {  // there isn't good pricing info for this stock
+        return @"n/a";
+    }
+}
+
+- (NSString *)changeString {
+    NSArray *a = [self getCurrentPriceAndChange];
+    if (a != nil) {
+        CGFloat change = [a[1] floatValue];
+        if (change == 0) {
+            return @"unch";
+        }
+        else if (change > 0) {
+            return [NSString stringWithFormat:@"%C%2.2f", (unsigned short)0x25B2, change];
+        }
+        else { // change < 0
+            return [NSString stringWithFormat:@"%C%2.2f", (unsigned short)0x25BC, change * -1];
+        }
+    }
+    else {  // there isn't good pricing info for this stock
+        return @"n/a";
+    }
 }
 
 @end

@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -40,8 +40,6 @@
     maxVolts = 0;
     maxAmps = 0;
 	minAmps = 0;
-    currentIndex = 0;
-    values = 0;
     powerStatus = UNKNOWN;
     numBatteries = 0;
     minutesRemaining = 0;
@@ -57,6 +55,8 @@
     statsUpdateTimeFrame = 10;
     currentStatsTime = statsUpdateTimeFrame + 1;
     tripleCount = 0;
+    self.chargeWatts = [[XRGDataSet alloc] init];
+    self.dischargeWatts = [[XRGDataSet alloc] init];
     
     graphSize    = NSMakeSize(90, 112);
               
@@ -75,10 +75,7 @@
     CHARGED_WIDE      = 0;
     ESTIMATING_WIDE   = 0;
     ESTIMATING_NORMAL = 0;
-    VOLTAGE_WIDE      = 0;
-    VOLTAGE_NORMAL    = 0;
-    AMPERAGE_WIDE     = 0;
-    AMPERAGE_NORMAL   = 0;
+    POWER_WIDE        = 0;
     CURRENT_WIDE      = 0;
     CURRENT_NORMAL    = 0;
     CAPACITY_WIDE     = 0;
@@ -121,36 +118,10 @@
 }
 
 - (void)setWidth:(int)newWidth {
-    NSInteger i;
-    NSInteger newNumSamples = newWidth;
-    maxVal = 0;
+    [self.chargeWatts resize:newWidth];
+    [self.dischargeWatts resize:newWidth];
     
-    if (values) {
-        NSInteger *newVals;
-        NSInteger newValIndex = newNumSamples - 1;
-        newVals   = calloc(newNumSamples, sizeof(NSInteger));
-        
-        for (i = currentIndex; i >= 0; i--) {
-            if (newValIndex < 0) break;
-            newVals[newValIndex]   = values[i];            
-            newValIndex--;
-        }
-        
-        for (i = numSamples - 1; i > currentIndex; i--) {
-            if (newValIndex < 0) break;
-            newVals[newValIndex]   = values[i];
-            newValIndex--;
-        }
-                
-        free(values);      
-        values = newVals;
-        currentIndex = newNumSamples - 1;
-    }
-    else {
-        values = calloc(newNumSamples, sizeof(NSInteger));
-        currentIndex = 0;
-    }
-    numSamples  = newNumSamples;
+    numSamples  = newWidth;
 }
 
 - (void)updateMinSize {
@@ -174,11 +145,7 @@
     ESTIMATING_WIDE   = [@"100% Estimating Left" sizeWithAttributes:textAttributes].width;
     ESTIMATING_NORMAL = [@"100% Estimating" sizeWithAttributes:textAttributes].width;
     
-    VOLTAGE_WIDE      = [@"Voltage: 99.999V" sizeWithAttributes:textAttributes].width;
-    VOLTAGE_NORMAL    = [@"Volts: 99.999" sizeWithAttributes:textAttributes].width;
-    
-    AMPERAGE_WIDE     = [@"Current: 9.999A" sizeWithAttributes:textAttributes].width;
-    AMPERAGE_NORMAL   = [@"Cur: 9.999" sizeWithAttributes:textAttributes].width;
+    POWER_WIDE        = [@"Power: 99.9V" sizeWithAttributes:textAttributes].width;
     
     CURRENT_WIDE      = [@"Remaining Capacity: " sizeWithAttributes:textAttributes].width;
     CURRENT_NORMAL    = [@"Rem: " sizeWithAttributes:textAttributes].width;
@@ -211,34 +178,6 @@
     float refresh = [appSettings graphRefresh];
     currentStatsTime += refresh;
     currentPixelTime += refresh;
-    if (currentPixelTime > graphPixelTimeFrame) {
-        currentPixelTime = 0.;
-        minutesRemaining = 0.;
-        
-        // change the minutes remaining
-        if (current && capacity) {
-            if (powerStatus == RUNNING_ON_BATTERY) {
-                NSInteger changePerMinute = (CGFloat)(values[currentIndex] - chargeSum) * (CGFloat)(60. / (CGFloat)graphPixelTimeFrame);
-                minutesRemaining = (CGFloat)chargeSum / (CGFloat)changePerMinute;
-            }
-            else if (powerStatus == CHARGING) {
-                NSInteger changePerMinute = (CGFloat)(chargeSum - values[currentIndex]) * (CGFloat)(60. / (CGFloat)graphPixelTimeFrame);
-                minutesRemaining = (CGFloat)(capacitySum - chargeSum) / (CGFloat)changePerMinute;
-            }
-        }
-        // Check that minutes remaining is reasonable (< 20 hours)
-        if (minutesRemaining > 20 * 60) 
-            minutesRemaining = 0;
-        
-        // Save the time remaining into the values array for graphing.
-        currentIndex++;
-        if (currentIndex == numSamples)
-            currentIndex = 0;
-
-        if (current) {
-            values[currentIndex] = chargeSum;
-        }
-    }
     
     // Cycle the powerStatus to lastPowerStatus before it's possible for us 
     // to return and before we set the new powerStatus.
@@ -345,6 +284,43 @@
             if (current[i] == 0 && voltage[i] == 0) powerStatus = NO_BATTERY;
         }
         
+        // Save the watts being used.
+        CGFloat chargeWattsSum = 0;
+        CGFloat dischargeWattsSum = 0;
+        for (NSInteger i = 0; i < numBatteries; i++) {
+            CGFloat watts = ((CGFloat)amperage[i] / 1000) * ((CGFloat)voltage[i] / 1000);
+            if (watts < 0) {
+                dischargeWattsSum += -watts;
+            }
+            else {
+                chargeWattsSum += watts;
+            }
+        }
+        [self.chargeWatts setNextValue:chargeWattsSum];
+        [self.dischargeWatts setNextValue:dischargeWattsSum];
+        
+        // Calculate the time remaining.
+        if ((chargeWattsSum == 0) && (dischargeWattsSum == 0)) {
+            minutesRemaining = 0;
+        }
+        else {
+            CGFloat mahChange = 0;
+            for (NSInteger i = 0; i < numBatteries; i++) {
+                mahChange += (CGFloat)amperage[i];
+            }
+            
+            if (mahChange < 0) {
+                // Discharging
+                CGFloat remaingingMAH = chargeSum;
+                minutesRemaining = minutesRemaining * 0.8 + (remaingingMAH / -mahChange * 60) * 0.2;
+            }
+            else {
+                // Charging
+                CGFloat remaingingMAH = capacitySum - chargeSum;
+                minutesRemaining = minutesRemaining * 0.8 + (remaingingMAH / mahChange * 60) * 0.2;
+            }
+        }
+        
         if (numBatteries - skipBatteries > 0) {
             voltageAverage  /= (numBatteries - skipBatteries);
             amperageAverage /= (numBatteries - skipBatteries);
@@ -400,41 +376,41 @@
     
     float textRectHeight = [appSettings textRectHeight];
     NSRect percentRect = NSMakeRect(0, 
-                                    graphSize.height - textRectHeight, 
+                                    graphSize.height - textRectHeight * 2,
                                     graphSize.width, 
-                                    textRectHeight);    
-    NSRect textRect = NSMakeRect(0, 
-                                 graphSize.height - textRectHeight, 
-                                 graphSize.width, 
-                                 textRectHeight);
+                                    textRectHeight * 2);
     
     // Clear the background
     [[appSettings graphBGColor] set];
-    NSRectFill(rect);
-        
+    NSRect bounds = [self bounds];
+    CGContextFillRect(gc.CGContext, bounds);
+    
+    NSMutableDictionary *wrapAttributes = [[appSettings alignLeftAttributes] mutableCopy];
+    wrapAttributes[NSParagraphStyleAttributeName] = [wrapAttributes[NSParagraphStyleAttributeName] mutableCopy];
+    [wrapAttributes[NSParagraphStyleAttributeName] setLineBreakMode:NSLineBreakByWordWrapping];
+    
     // First check if there is battery data to graph.
     if (powerStatus == NO_BATTERY || powerStatus == UNKNOWN) {
-        if (NBF_WIDE <= graphSize.width) {
-            [@"No Battery Found" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
-        else if (NBF_NORMAL <= graphSize.width) {
-            textRect.origin.y -= textRectHeight;
-            [@"No Battery\nFound" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
-        else {
-            textRect.origin.y -= textRectHeight * 2;
-            [@"No\nBattery\nFound" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
-        
+        [@"No Battery Found" drawInRect:self.bounds withAttributes:wrapAttributes];
         return;
     }
 
     [gc setShouldAntialias:[appSettings antiAliasing]];
     
+    CGFloat currentWatts = self.chargeWatts.currentValue - self.dischargeWatts.currentValue;
+    CGFloat maxWatts = MAX(self.chargeWatts.max, self.dischargeWatts.max);
+    maxWatts = MAX(maxWatts, 30);
+    
     // draw the battery bar
     [[appSettings graphFG1Color] set];
     if (charge) {
-        percentRect.size.width = rect.size.width * (float)((float)currentPercent / 100.);
+        percentRect.size.width = rect.size.width * ((float)currentPercent / 100.);
+		
+		if ([self shouldDrawMiniGraph]) {
+			percentRect.origin.y = self.bounds.origin.y;
+			percentRect.size.height = self.bounds.size.height;
+		}
+		
         NSRectFill(percentRect);
     }
     
@@ -448,78 +424,51 @@
                                         
         NSRectFill(chargingRect);
     }
+    percentRect.size.height = textRectHeight;
+    percentRect.origin.y -= percentRect.size.height;
     
-    // draw the volts bar
-    percentRect.origin.y -= textRectHeight;
-    if (voltage) {
-        percentRect.size.width = (maxVolts == 0) ? 0 : rect.size.width * (float)((float)voltageAverage / (float)maxVolts);
-        NSRectFill(percentRect);
-    }
-    
-    // draw the amps bar
-    [[appSettings graphFG3Color] set];
-    percentRect.origin.y -= textRectHeight;
-	percentRect.origin.x = rect.size.width / 2.;
-    if (amperage) {
-		if (amperageAverage > 0) {
-			percentRect.size.width = (maxAmps == 0) ? 0 : (rect.size.width / 2.) * (float)((float)amperageAverage / (float)maxAmps);
-			NSRectFill(percentRect);
-		}
-		else {
-			percentRect.size.width = (minAmps == 0) ? 0 : (rect.size.width / 2.) * (float)((float)amperageAverage / (float)minAmps);
-			percentRect.origin.x -= percentRect.size.width;
-			NSRectFill(percentRect);
-		}
-    }
-	percentRect.origin.x = 0;
-    
-    // draw the borders
-    [[appSettings borderColor] set];
-    percentRect.size.width = graphSize.width;
-    percentRect.size.height = 2;
-    percentRect.origin.y--;
-    int topOfCapacityGraph = percentRect.origin.y;
-    NSRectFill(percentRect);
-    percentRect.origin.y += textRectHeight;
-    NSRectFill(percentRect);
-    percentRect.origin.y += textRectHeight;
-    NSRectFill(percentRect);
-	
-	// Fill the split bar for the amp graph
-	NSRectFill(NSMakeRect((rect.size.width / 2.) - 1., topOfCapacityGraph, 2., textRectHeight + 2.));
-    
-    // Draw the battery capacity graph, only if there is space for it on the graph.
-    percentRect.size.width = graphSize.width;
-    percentRect.origin.y = 0;
-    percentRect.size.height = topOfCapacityGraph;
-    
-    if (capacity && percentRect.size.height > 0) {
-        CGFloat *data = (CGFloat *)alloca(numSamples * sizeof(CGFloat));
-        for (NSInteger i = 0; i < numSamples; ++i) {
-            data[i] = (capacitySum == 0) ? 0 : ((CGFloat)values[i] / (CGFloat)capacitySum) * 100;
-            if (data[i] > 100) data[i] = 100;
+	if (![self shouldDrawMiniGraph]) {
+        // Draw the watts bar
+        percentRect.origin.x = rect.size.width / 2.;
+        percentRect.size.width = (rect.size.width / 2.) * (fabs(currentWatts) / maxWatts);
+        if (currentWatts < 0) {
+            percentRect.origin.x -= percentRect.size.width;
         }
-    
-        [self drawGraphWithData:data size:numSamples currentIndex:currentIndex maxValue:100.0f inRect:percentRect flipped:NO color:[appSettings graphFG1Color]];
-    }
-
+        NSRectFill(percentRect);
+        percentRect.origin.x = 0;
+		
+		// draw the borders
+		[[appSettings borderColor] set];
+		percentRect.size.width = graphSize.width;
+		percentRect.size.height = 2;
+		percentRect.origin.y--;
+		CGFloat topOfGraph = percentRect.origin.y;
+		NSRectFill(percentRect);
+		percentRect.origin.y += textRectHeight;
+		NSRectFill(percentRect);
+		
+		// Fill the split bar for the amp graph
+		NSRectFill(NSMakeRect((rect.size.width / 2.) - 1., topOfGraph, 2., textRectHeight + 2.));
+		
+		// Draw the battery capacity graph, only if there is space for it on the graph.
+		percentRect.size.width = graphSize.width;
+		percentRect.origin.y = 0;
+		percentRect.size.height = topOfGraph;
+		
+        if (percentRect.size.height > 0) {
+            [self drawGraphWithDataFromDataSet:self.chargeWatts maxValue:maxWatts inRect:percentRect flipped:NO filled:YES color:[appSettings graphFG1Color]];
+            [self drawGraphWithDataFromDataSet:self.dischargeWatts maxValue:maxWatts inRect:percentRect flipped:YES filled:YES color:[appSettings graphFG2Color]];
+        }
+	}
     [gc setShouldAntialias:YES];
 
-
     // Draw the text.
-    [gc setShouldAntialias:[appSettings antialiasText]];
-
-    textRect.origin.x   += 3;
-    textRect.size.width -= 6;
-
-    if (current && charge && capacity && voltage && amperage) {
+    NSRect textRect = [self paddedTextRect];
+    if (current && charge && capacity) {
         NSMutableString *leftS = [[NSMutableString alloc] init];
         NSMutableString *rightS = [[NSMutableString alloc] init];
         NSMutableString *centerS = [[NSMutableString alloc] init];
-        [leftS setString:@""];
-        [rightS setString:@""];
-        [centerS setString:@""];
-        bool drawCenter = NO;
+        BOOL drawCenter = NO;
 
         // Draw the battery percentage
         if (minutesRemaining > 0) {
@@ -555,122 +504,30 @@
                 [rightS appendFormat:@"Est."];
         }
         
-        // Draw the voltage
-        if (textRect.origin.y - textRectHeight > 0) {
-            textRect.origin.y -= textRectHeight;
-            textRect.size.height += textRectHeight;
-            
-            if (VOLTAGE_WIDE <= textRect.size.width) {
-                [leftS appendString:@"\nVoltage:"];
-                [rightS appendFormat:@"\n%2.3fV", (float)voltageAverage / 1000.];
-                [centerS appendString:@"\n "];
-            }
-            else if (VOLTAGE_NORMAL <= textRect.size.width) {
-                [leftS appendString:@"\nVolts:"];
-                [rightS appendFormat:@"\n%2.3f", (float)voltageAverage / 1000.];
-                [centerS appendString:@"\n "];
-            }
-            else {
-                [leftS appendString:@"\n "];
-                [rightS appendString:@"\n "];
-                [centerS appendFormat:@"\n%2.3fV", (float)voltageAverage / 1000.];
-                drawCenter = YES;
-            }
-        }
-    
-        // Draw the amperage
-        if (textRect.origin.y - textRectHeight > 0) {
-            textRect.origin.y -= textRectHeight;
-            textRect.size.height += textRectHeight;
-            
-            if (AMPERAGE_WIDE <= textRect.size.width) {
-                [leftS appendString:@"\nCurrent:"];
-                [rightS appendFormat:@"\n%1.3fA", (float)amperageAverage / 1000.];
-                [centerS appendString:@"\n "];
-            }
-            else if (AMPERAGE_NORMAL <= textRect.size.width) {
-                [leftS appendString:@"\nCur:"];
-                [rightS appendFormat:@"\n%1.3f", (float)amperageAverage / 1000.];
-                [centerS appendString:@"\n "];
-            }
-            else {
-                [leftS appendString:@"\n "];
-                [rightS appendString:@"\n "];
-                [centerS appendFormat:@"\n%1.3fA", (float)amperageAverage / 1000.];
-                drawCenter = YES;
-            }
-        }
-
-        // Draw the current charge
-        if (textRect.origin.y - textRectHeight > 0) {
-            textRect.origin.y -= textRectHeight;
-            textRect.size.height += textRectHeight;
-            
-            NSString *chargeString = [NSString stringWithFormat:@"\n%ldmAh", (long)chargeSum];
-            
-            if (CURRENT_WIDE + MAH_STRING <= textRect.size.width) {
-                [leftS appendString:@"\nRemaining Capacity:"];
-                [rightS appendString:chargeString];
-                [centerS appendString:@"\n "];
-            }
-            else if (CURRENT_NORMAL + MAH_STRING <= textRect.size.width) {
-                [leftS appendString:@"\nRem:"];
-                [rightS appendString:chargeString];
-                [centerS appendString:@"\n "];
-            }
-            else {
-                [leftS appendString:@"\n "];
-                [rightS appendString:@"\n "];
-                [centerS appendString:chargeString];
-                drawCenter = YES;
-            }
-        }
+        // Draw the current charge.
+        [leftS appendFormat:@"\n%ldmAh", (long)chargeSum];
+        [rightS appendFormat:@"\n%ldmAh", (long)capacitySum];
+        [centerS appendString:@"\n"];
         
-        // Draw the capacity
-        if (textRect.origin.y - textRectHeight > 0) {
-            textRect.origin.y -= textRectHeight;
-            textRect.size.height += textRectHeight;
-            
-            NSString *capacityString = [NSString stringWithFormat:@"\n%ldmAh", (long)capacitySum];
-            
-            if (CAPACITY_WIDE + MAH_STRING <= textRect.size.width) {
-                [leftS appendString:@"\nMaximum Capacity:"];
-                [rightS appendString:capacityString];
-                [centerS appendString:@"\n "];
-            }
-            else if (CAPACITY_NORMAL + MAH_STRING <= textRect.size.width) {
-                [leftS appendString:@"\nMax:"];
-                [rightS appendString:capacityString];
+		if (![self shouldDrawMiniGraph]) {
+            // Draw the wattage.
+            if (POWER_WIDE <= textRect.size.width) {
+                [leftS appendString:@"\nPower:"];
+                [rightS appendFormat:@"\n%2.1fW", currentWatts];
                 [centerS appendString:@"\n "];
             }
             else {
                 [leftS appendString:@"\n "];
                 [rightS appendString:@"\n "];
-                [centerS appendString:capacityString];
+                [centerS appendFormat:@"\n%2.1fW", currentWatts];
                 drawCenter = YES;
             }
-        }
-        
-        [leftS drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        [rightS drawInRect:textRect withAttributes:[appSettings alignRightAttributes]];
-        
-        if (drawCenter) {
-            [centerS drawInRect:textRect withAttributes:[appSettings alignCenterAttributes]];
-        }
-
+		}
+		
+        [self drawLeftText:leftS centerText:drawCenter ? centerS : nil rightText:rightS inRect:textRect];
     }
     else {
-        if (NBIF_WIDE <= textRect.size.width) {
-            [@"No Battery Info Found" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
-        else if (NBIF_NORMAL <= textRect.size.width) {
-            textRect.origin.y -= textRectHeight;
-            [@"No Battery\nInfo Found" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
-        else {
-            textRect.origin.y -= textRectHeight * 3;
-            [@"No\nBattery\nInfo\nFound" drawAtPoint:textRect.origin withAttributes:[appSettings alignLeftAttributes]];
-        }
+        [@"No Battery Info Found" drawInRect:NSInsetRect(self.bounds, 3, 0) withAttributes:wrapAttributes];
     }
     
     [gc setShouldAntialias:YES];

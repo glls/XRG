@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -298,7 +298,7 @@
         [defs setObject:@"All" forKey:XRG_networkInterface];
     }
     else {
-        NSArray *interfaces = [self.xrgGraphWindow.netView networkInterfaces];
+        NSArray *interfaces = [self.xrgGraphWindow.netView.miner networkInterfaces];
         if (selectedRow - 1 < [interfaces count])
             [defs setObject:interfaces[(selectedRow - 1)] forKey:XRG_networkInterface];
         else
@@ -681,7 +681,7 @@
     [networkInterface setAction:@selector(setNetworkInterface:)];
     [networkInterface removeAllItems];
     [networkInterface addItemWithTitle:@"All Active"];
-    NSArray *interfaces = [self.xrgGraphWindow.netView networkInterfaces];
+    NSArray *interfaces = [self.xrgGraphWindow.netView.miner networkInterfaces];
     NSString *selectedInterface = self.xrgGraphWindow.appSettings.networkInterface;
     int i;
     for (i = 0; i < [interfaces count]; i++) {

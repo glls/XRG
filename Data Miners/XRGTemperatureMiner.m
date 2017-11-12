@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -436,4 +436,44 @@
     numSamples = newNumSamples;
 }
 
+- (NSArray<XRGFan *> *)fanValues {
+    if (self.fanCache && ([self.fanCacheCreated timeIntervalSinceNow] > -1)) {
+        return self.fanCache;
+    }
+    
+    NSMutableArray *retFans = [NSMutableArray array];
+    
+    NSDictionary *fansD = [smcSensors fanValues];
+    for (NSString *key in [fansD allKeys]) {
+        XRGFan *f = [[XRGFan alloc] init];
+        f.name = key;
+        
+        id fanD = fansD[key];
+        for (NSString *fanDKey in [fanD allKeys]) {
+            if ([fanDKey hasSuffix:@"Ac"]) {
+                f.actualSpeed = [fanD[fanDKey] integerValue];
+            }
+            else if ([fanDKey hasSuffix:@"Tg"]) {
+                f.targetSpeed = [fanD[fanDKey] integerValue];
+            }
+            else if ([fanDKey hasSuffix:@"Mn"]) {
+                f.minimumSpeed = [fanD[fanDKey] integerValue];
+            }
+            else if ([fanDKey hasSuffix:@"Mx"]) {
+                f.maximumSpeed = [fanD[fanDKey] integerValue];
+            }
+        }
+        
+        [retFans addObject:f];
+    }
+
+    self.fanCache = retFans;
+    self.fanCacheCreated = [NSDate date];
+    
+    return retFans;
+}
+
+@end
+
+@implementation XRGFan
 @end

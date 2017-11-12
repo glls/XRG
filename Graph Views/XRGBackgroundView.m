@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -77,6 +77,8 @@
 
 - (void)setFrame:(NSRect)frame {
 	[super setFrame:frame];
+
+    [self updatePaths];
 	[parentWindow.moduleManager windowChangedToSize:self.frame.size];
 }
 
@@ -85,9 +87,22 @@
 }
 
 - (void)resizeSubviewsWithOldSize:(NSSize)oldBoundsSize {
+    [self updatePaths];
 }
 
-- (void)drawRect:(NSRect)rect{    
+- (void)updatePaths {
+    int borderWidth = [parentWindow borderWidth];
+    NSRect tmpRect = [self bounds];
+    tmpRect.origin.x += borderWidth;
+    tmpRect.origin.y = tmpRect.size.height - borderWidth - [appSettings textRectHeight];
+    tmpRect.size.width -= borderWidth * 2;
+    tmpRect.size.height = [appSettings textRectHeight];
+    
+    self.outerPath = [NSBezierPath bezierPathWithRoundedRect:self.bounds xRadius:borderWidth yRadius:borderWidth];
+    self.innerPath = [NSBezierPath bezierPathWithRoundedRect:tmpRect xRadius:borderWidth yRadius:borderWidth];
+}
+
+- (void)drawRect:(NSRect)rect{
     // rotate the coordinate system if necessary
     if (![moduleManager graphOrientationVertical] && isVertical) {
         // first update our size:
@@ -99,6 +114,8 @@
         [self translateOriginToPoint: NSMakePoint(0, 0 - [self frame].size.width)];
         isVertical = NO;
         lastWidth = [self frame].size.width;
+        
+        [self updatePaths];
     }
     if ([moduleManager graphOrientationVertical] && !isVertical) {
         // first update our size:
@@ -110,6 +127,8 @@
         [self setBoundsRotation: 0];
         [self setAutoresizesSubviews:YES];
         isVertical = YES;
+        
+        [self updatePaths];
     }
     
     if (!isVertical) {
@@ -129,12 +148,12 @@
     tmpRect.size.width -= borderWidth * 2;
     tmpRect.size.height = [appSettings textRectHeight];
 
-	[[appSettings borderColor] set];
-	NSRectFill([self bounds]);
+    [[appSettings borderColor] set];
+    [self.outerPath fill];
 
     [[appSettings backgroundColor] set];
-    NSRectFill(tmpRect);    
-        
+    [self.innerPath fill];
+    
     NSRect titleRect;
     if (isVertical) {    
         titleRect = NSMakeRect(borderWidth, 
@@ -148,6 +167,7 @@
                                [self bounds].size.width - 2 * borderWidth,
                                [appSettings textRectHeight]);
     }
+    NSRectFill(titleRect);
     
     [gc setShouldAntialias:[appSettings antialiasText]];
 
@@ -376,9 +396,6 @@
     // Finally, resize the window.
 	[parentWindow setFrame:windowFrame display:YES animate:YES];
 	
-	// Reset the cursor rects.
-	[self resetCursorRects];
-	
 	// Show the modules again.
     NSArray *a = [moduleManager displayList];
     for (i = 0; i < [a count]; i++) {
@@ -594,28 +611,9 @@
         }
     }
     	
-	[[[NSApp delegate] prefController] setUpColorPanel];
+	[[(XRGAppDelegate *)[NSApp delegate] prefController] setUpColorPanel];
 
     return YES;
-}
-
-- (void) resetCursorRects {
-	NSRect bounds = [self bounds];
-	int border = [parentWindow borderWidth];
-	BOOL vertical = [moduleManager graphOrientationVertical];
-	
-	[self addCursorRect:NSMakeRect(bounds.origin.x, bounds.origin.y, border, bounds.size.height) 
-				 cursor:vertical ? [NSCursor resizeLeftRightCursor] : [NSCursor resizeUpDownCursor]];
-	[self addCursorRect:NSMakeRect(bounds.origin.x + bounds.size.width - border, bounds.origin.y, border, bounds.size.height)
-				 cursor:vertical ? [NSCursor resizeLeftRightCursor] : [NSCursor resizeUpDownCursor]];
-	
-	[self addCursorRect:NSMakeRect(bounds.origin.x, bounds.origin.y, bounds.size.width, border)
-				 cursor:vertical ? [NSCursor resizeUpDownCursor] : [NSCursor resizeLeftRightCursor]];
-	[self addCursorRect:NSMakeRect(bounds.origin.x, bounds.origin.y + bounds.size.height - border, bounds.size.width, border)
-				 cursor:vertical ? [NSCursor resizeUpDownCursor] : [NSCursor resizeLeftRightCursor]];
-	
-	if (trackingRect) [self removeTrackingRect:trackingRect];
-	trackingRect = [self addTrackingRect:bounds owner:self userData:nil assumeInside:NO];
 }
 
 - (void)mouseEntered:(NSEvent *)theEvent {

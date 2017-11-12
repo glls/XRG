@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2012 Gaucho Software, LLC.
+ * Copyright (C) 2002-2016 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -78,13 +78,9 @@
     [memoryMiner setDataSize:newNumSamples];
 }
 
-- (void)updateMinSize {
-    float width, height;
-    height = [appSettings textRectHeight] * 2;
-    width = [@"W: 9999M" sizeWithAttributes:[appSettings alignRightAttributes]].width + 19 + 6;
-    
-    [m setMinWidth: width];
-    [m setMinHeight: height];
+- (void)updateMinSize {    
+    [m setMinWidth: [@"W: 9999M" sizeWithAttributes:[appSettings alignRightAttributes]].width + 19 + 6];
+    [m setMinHeight: [appSettings textRectHeight]];
 }
 
 - (void)graphUpdate:(NSTimer *)aTimer {
@@ -96,16 +92,22 @@
 - (void)drawRect:(NSRect)rect {
     if ([self isHidden]) return;
 
-    NSGraphicsContext *gc = [NSGraphicsContext currentContext]; 
+    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
 
     #ifdef XRG_DEBUG
         NSLog(@"In Memory DrawRect."); 
     #endif
     textRectHeight = [appSettings textRectHeight];
     
-    [[appSettings graphBGColor] set];    
-    NSRectFill([self bounds]);
-            
+    [[appSettings graphBGColor] set];
+    NSRect bounds = [self bounds];
+    CGContextFillRect(gc.CGContext, bounds);
+    
+    if ([self shouldDrawMiniGraph]) {
+        [self drawMiniGraph:self.bounds];
+        return;
+    }
+    
     [gc setShouldAntialias:[appSettings antiAliasing]];
     
     if ([appSettings showMemoryPagingGraph]) {
@@ -166,12 +168,7 @@
 	[[appSettings graphFG1Color] set];
 	NSRectFill(tmpRect);
 
-    [gc setShouldAntialias:YES];
-
-    
     // draw the text
-    [gc setShouldAntialias:[appSettings antialiasText]];
-
     tmpRect.origin.y    = graphSize.height - textRectHeight;
     tmpRect.origin.x    = 3;
     tmpRect.size.height = textRectHeight;
@@ -180,74 +177,79 @@
     [s setString: @"Memory"];
        
     if ([appSettings memoryShowFree]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;
-            [s appendFormat:@"\nF: %ldM", (long)[memoryMiner freeBytes] / 1024];
-        }
+        [s appendFormat:@"\nF: %ldM", (long)[memoryMiner freeBytes] / 1024];
     }
     
     if ([appSettings memoryShowInactive]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;
-            [s appendFormat:@"\nI: %ldM", (long)[memoryMiner inactiveBytes] / 1024];
-        }
+        [s appendFormat:@"\nI: %ldM", (long)[memoryMiner inactiveBytes] / 1024];
     }
     
     if ([appSettings memoryShowActive]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;
-            [s appendFormat:@"\nA: %ldM", (long)[memoryMiner activeBytes] / 1024];
-        }
+        [s appendFormat:@"\nA: %ldM", (long)[memoryMiner activeBytes] / 1024];
     }
     
     if ([appSettings memoryShowWired]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;
-            [s appendFormat:@"\nW: %ldM", (long)[memoryMiner wiredBytes] / 1024];
-        }
+        [s appendFormat:@"\nW: %ldM", (long)[memoryMiner wiredBytes] / 1024];
     }
     
     if ([appSettings memoryShowCache]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;			
-            [s appendFormat:@"\nCa: %d%%", ([memoryMiner totalCacheLookups] == 0) ? 0 : (int)((float)[memoryMiner totalCacheHits] / (float)[memoryMiner totalCacheLookups] * 100.)];
-        }
+        [s appendFormat:@"\nCa: %d%%", ([memoryMiner totalCacheLookups] == 0) ? 0 : (int)((float)[memoryMiner totalCacheHits] / (float)[memoryMiner totalCacheLookups] * 100.)];
     }
     
     if ([appSettings memoryShowPage]) {
-        if (tmpRect.origin.y - textRectHeight >= 0) {
-            tmpRect.origin.y -= textRectHeight;
-            tmpRect.size.height += textRectHeight;
-			if ([appSettings graphRefresh] != 0) {
-				if ([memoryMiner recentFaults] * 4 > 1024)
-					[s appendFormat:@"\nPF: %4.2fM/s", (float)[memoryMiner recentFaults] / [appSettings graphRefresh] * 4. / 1024.];
-				else
-					[s appendFormat: @"\nPF: %dK/s", (int)((float)[memoryMiner recentFaults] / [appSettings graphRefresh]) * 4];
-			}
+        if ([appSettings graphRefresh] != 0) {
+            if ([memoryMiner recentFaults] * 4 > 1024)
+                [s appendFormat:@"\nPF: %4.2fM/s", (float)[memoryMiner recentFaults] / [appSettings graphRefresh] * 4. / 1024.];
+            else
+                [s appendFormat: @"\nPF: %dK/s", (int)((float)[memoryMiner recentFaults] / [appSettings graphRefresh]) * 4];
         }
     }
 	
 	// Draw the VM text.
-	if (tmpRect.origin.y - textRectHeight >= 0) {
-		tmpRect.origin.y -= textRectHeight;
-		tmpRect.size.height += textRectHeight;
-		[s appendFormat:@"\nVu: %dM", (int)((double)[memoryMiner usedSwap] / 1024. / 1024.)];
-	}
-	if (tmpRect.origin.y - textRectHeight >= 0) {
-		tmpRect.origin.y -= textRectHeight;
-		tmpRect.size.height += textRectHeight;
-		[s appendFormat:@"\nVt: %dM", (int)((double)[memoryMiner totalSwap] / 1024. / 1024.)];
-	}
-	
-	[s drawInRect:tmpRect withAttributes:[appSettings alignLeftAttributes]];
-    
+    [s appendFormat:@"\nVu: %dM", (int)((double)[memoryMiner usedSwap] / 1024. / 1024.)];
+    [s appendFormat:@"\nVt: %dM", (int)((double)[memoryMiner totalSwap] / 1024. / 1024.)];
 
+    [self drawLeftText:s centerText:nil rightText:nil inRect:[self paddedTextRect]];
     [gc setShouldAntialias:YES];
+}
+
+- (void)drawMiniGraph:(NSRect)inRect {
+	NSGraphicsContext *gc = [NSGraphicsContext currentContext]; 
+		
+	CGFloat totalScale = MAX([memoryMiner wiredBytes] + [memoryMiner activeBytes] + [memoryMiner inactiveBytes] + [memoryMiner freeBytes], (CGFloat)[memoryMiner totalSwap] / 1024.);
+	
+	NSRect bottomBarRect = NSMakeRect(inRect.origin.x, inRect.origin.y, inRect.size.width, roundf(inRect.size.height * 0.4) - 1);
+	NSRect topBarRect = NSMakeRect(inRect.origin.x, bottomBarRect.origin.y + bottomBarRect.size.height + 1, inRect.size.width, inRect.origin.y + inRect.size.height - (bottomBarRect.origin.y + bottomBarRect.size.height + 1));
+	
+	NSRect wiredRect = topBarRect;
+	wiredRect.size.width = (totalScale == 0) ? 0 : (CGFloat)[memoryMiner wiredBytes] / totalScale * topBarRect.size.width;
+	[[appSettings graphFG1Color] set];
+	NSRectFill(wiredRect);
+	
+	NSRect activeRect = topBarRect;
+	activeRect.origin.x = wiredRect.origin.x + wiredRect.size.width;
+	activeRect.size.width = (totalScale == 0) ? 0 : (CGFloat)[memoryMiner activeBytes] / totalScale * topBarRect.size.width;
+	[[appSettings graphFG2Color] set];
+	NSRectFill(activeRect);
+	
+	NSRect inactiveRect = topBarRect;
+	inactiveRect.origin.x = activeRect.origin.x + activeRect.size.width;
+	inactiveRect.size.width = (totalScale == 0) ? 0 : (CGFloat)[memoryMiner inactiveBytes] / totalScale * topBarRect.size.width;
+	[[appSettings graphFG3Color] set];
+	NSRectFill(inactiveRect);
+	
+	// Draw the swap info.
+	bottomBarRect.size.width *= (totalScale == 0) ? 0 : ((CGFloat)[memoryMiner usedSwap] / 1024.) / totalScale;
+	[[appSettings graphFG1Color] set];
+	NSRectFill(bottomBarRect);
+	
+	// draw the text
+	NSString *leftString = @"Mem";
+	NSString *rightString = [NSString stringWithFormat:@"%dM Vu", (int)((double)[memoryMiner usedSwap] / 1024. / 1024.)];
+	
+    [self drawLeftText:leftString centerText:nil rightText:rightString inRect:[self paddedTextRect]];
+	
+	[gc setShouldAntialias:YES];
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
