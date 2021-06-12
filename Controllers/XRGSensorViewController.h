@@ -1,6 +1,6 @@
-/* 
+/*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2016 Gaucho Software, LLC.
+ * Copyright (C) 2002-2020 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -21,34 +21,15 @@
  */
 
 //
-//  XRGTemperatureView.h
+//  XRGSensorViewController.h
 //
 
 #import <Cocoa/Cocoa.h>
-#import "XRGGenericView.h"
-#import "XRGTemperatureMiner.h"
 
-@interface XRGTemperatureView : XRGGenericView
-{
-    NSSize						graphSize;
-	
-    float                       temperatureWidth;
-    float                       rpmWidth;
-    NSInteger					graphWidth;
-	NSMutableDictionary			*locationSizeCache;
-	
-    XRGModule                   *m;
+NS_ASSUME_NONNULL_BEGIN
 
-    NSInteger                   numSamples;
-	BOOL						showFanSpeed;
-}
-
-- (void)setGraphSize:(NSSize)newSize;
-- (void)setWidth:(NSInteger)newWidth;
-- (void)updateMinSize;
-//- (int) getWidthForLabel:(NSString *)label;
-
-- (void)graphUpdate:(NSTimer *)aTimer;
-- (void)openTemperaturePreferences:(NSEvent *)theEvent;
+@interface XRGSensorViewController : NSViewController
 
 @end
+
+NS_ASSUME_NONNULL_END

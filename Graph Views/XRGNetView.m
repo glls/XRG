@@ -79,7 +79,7 @@
     tmpSize.width = newSize.width;
     tmpSize.height = newSize.height;
     if (tmpSize.width < 1) tmpSize.width = 1;
-    if (tmpSize.width > 2000) tmpSize.width = 2000;
+    if (tmpSize.width > 20000) tmpSize.width = 20000;
     [self setWidth:tmpSize.width];
     graphSize = tmpSize;
 }
@@ -130,14 +130,14 @@
 
     /* received data */
     if (netGraphMode == 0) {
-        [self drawGraphWithDataFromDataSet:self.miner.totalValues maxValue:[self.miner maxBandwidth] inRect:rect flipped:(netGraphMode == 2) filled:YES color:[appSettings graphFG2Color]];
+        [self drawGraphWithDataFromDataSet:self.miner.totalValues maxValue:max inRect:rect flipped:(netGraphMode == 2) filled:YES color:[appSettings graphFG2Color]];
     }
     else {
-        [self drawGraphWithDataFromDataSet:self.miner.rxValues maxValue:[self.miner maxBandwidth] inRect:rect flipped:(netGraphMode == 2) filled:YES color:[appSettings graphFG2Color]];
+        [self drawGraphWithDataFromDataSet:self.miner.rxValues maxValue:max inRect:rect flipped:(netGraphMode == 2) filled:YES color:[appSettings graphFG2Color]];
     }
 
     /* sent data */
-    [self drawGraphWithDataFromDataSet:self.miner.txValues maxValue:[self.miner maxBandwidth] inRect:rect flipped:(netGraphMode == 1) filled:YES color:[appSettings graphFG1Color]];
+    [self drawGraphWithDataFromDataSet:self.miner.txValues maxValue:max inRect:rect flipped:(netGraphMode == 1) filled:YES color:[appSettings graphFG1Color]];
 
     [gc setShouldAntialias:YES];
 
@@ -344,13 +344,16 @@
     
     [myMenu addItem:[NSMenuItem separatorItem]];
     
+    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
+    [myMenu addItem:tMI];
+
+    [myMenu addItem:[NSMenuItem separatorItem]];
+    
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Network System Preferences..." action:@selector(openNetworkSystemPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Network Utility..." action:@selector(openNetworkUtility:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    
-    [myMenu addItem:[NSMenuItem separatorItem]];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Network Preferences..." action:@selector(openNetworkPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
@@ -371,12 +374,16 @@
 - (void)openNetworkUtility:(NSEvent *)theEvent {
     [NSTask 
       launchedTaskWithLaunchPath:@"/usr/bin/open"
-      arguments:@[@"/Applications/Utilities/Network Utility.app"]
+      arguments:@[@"-a", @"Network Utility.app"]
     ];
 }
 
 - (void)openNetworkPreferences:(NSEvent *)theEvent {
     [[parentWindow controller] showPrefsWithPanel:@"Network"];
+}
+
+- (void)clearData:(NSEvent *)theEvent {
+    [self.miner reset];
 }
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent {       

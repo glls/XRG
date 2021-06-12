@@ -90,6 +90,12 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
 + (NSMutableDictionary *) getDefaultPrefs {
     NSMutableDictionary *appDefs = [NSMutableDictionary dictionary];
+    BOOL useMetricUnits = NO;
+    if( @available( macOS 10.12, * )  ) {
+        NSLocale *locale = [NSLocale currentLocale];
+        useMetricUnits = locale.usesMetricSystem;
+    }
+    NSNumber *defaultUnitIndex = useMetricUnits ? @(1) : @(0);
     
     appDefs[XRG_backgroundTransparency] = @"0.9";
     appDefs[XRG_graphBGTransparency]    = @"0.9";
@@ -148,16 +154,16 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     appDefs[XRG_stickyWindow] = @"YES";
     appDefs[XRG_checkForUpdates] = @"YES";
     appDefs[XRG_dropShadow] = @"NO";
-    appDefs[XRG_windowLevel] = @"";
     appDefs[XRG_autoExpandGraph] = @"YES";
     appDefs[XRG_foregroundWhenExpanding] = @"NO";
     appDefs[XRG_showSummary] = @"YES";
     appDefs[XRG_minimizeUpDown] = @"";
+    appDefs[XRG_isDockIconHidden] = @"NO";
     
-    appDefs[XRG_fastCPUUsage] = @"NO";
+    appDefs[XRG_showCPUBars] = @"YES";
     appDefs[XRG_separateCPUColor] = @"YES";
     appDefs[XRG_showCPUTemperature] = @"NO";
-    appDefs[XRG_cpuTemperatureUnits] = @"0";
+    appDefs[XRG_cpuTemperatureUnits] = defaultUnitIndex;
     appDefs[XRG_showLoadAverage] = @"YES";
     appDefs[XRG_cpuShowAverageUsage] = @"YES";
     appDefs[XRG_cpuShowUptime] = @"YES";
@@ -170,7 +176,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     appDefs[XRG_memoryShowCache] = @"YES";
     appDefs[XRG_memoryShowPage] = @"YES";
     
-    appDefs[XRG_tempUnits] = @"0";
+    appDefs[XRG_tempUnits] = defaultUnitIndex;
     appDefs[XRG_tempFG1Location] = @"0";
     appDefs[XRG_tempFG2Location] = @"1";
     appDefs[XRG_tempFG3Location] = @"2";
@@ -185,9 +191,9 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
     appDefs[XRG_ICAO] = @"KMOP";
     appDefs[XRG_secondaryWeatherGraph] = @"1";
-    appDefs[XRG_temperatureUnits] = @"0";
-    appDefs[XRG_distanceUnits] = @"0";
-    appDefs[XRG_pressureUnits] = @"0";
+    appDefs[XRG_temperatureUnits] = defaultUnitIndex;
+    appDefs[XRG_distanceUnits] = defaultUnitIndex;
+    appDefs[XRG_pressureUnits] = defaultUnitIndex;
     
     appDefs[XRG_stockSymbols] = @"AAPL";
     appDefs[XRG_stockGraphTimeFrame] = @"3";
@@ -210,6 +216,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [self.appSettings setForegroundWhenExpanding: [defs[XRG_foregroundWhenExpanding] boolValue]];
     [self.appSettings setShowSummary:             [defs[XRG_showSummary] boolValue]];
     [self.appSettings setMinimizeUpDown:          [defs[XRG_minimizeUpDown] intValue]];
+    [self.appSettings setIsDockIconHidden:        [defs[XRG_isDockIconHidden] boolValue]];
 
     [self.appSettings setBackgroundColor:        [NSUnarchiver unarchiveObjectWithData: defs[XRG_backgroundColor]]];
     [self.appSettings setGraphBGColor:           [NSUnarchiver unarchiveObjectWithData: defs[XRG_graphBGColor]]];
@@ -228,7 +235,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [self.appSettings setBorderTransparency:     [defs[XRG_borderTransparency] floatValue]];
     [self.appSettings setTextTransparency:       [defs[XRG_textTransparency] floatValue]];
 
-    [self.appSettings setFastCPUUsage:           [defs[XRG_fastCPUUsage] boolValue]];
+    [self.appSettings setFastCPUUsage:           [defs[XRG_showCPUBars] boolValue]];
     [self.appSettings setSeparateCPUColor:       [defs[XRG_separateCPUColor] boolValue]];
     [self.appSettings setShowCPUTemperature:     [defs[XRG_showCPUTemperature] boolValue]];
     [self.appSettings setCpuTemperatureUnits:    [defs[XRG_cpuTemperatureUnits] intValue]];
@@ -251,9 +258,9 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [self.appSettings setMemoryShowPage:         [defs[XRG_memoryShowPage] boolValue]];
     
     [self.appSettings setTempUnits:              [defs[XRG_tempUnits] intValue]];
-    [self.appSettings setTempFG1Location:        [defs[XRG_tempFG1Location] intValue]];
-    [self.appSettings setTempFG2Location:        [defs[XRG_tempFG2Location] intValue]];
-    [self.appSettings setTempFG3Location:        [defs[XRG_tempFG3Location] intValue]];
+    [self.appSettings setTempFG1Location:        defs[XRG_tempFG1Location]];
+    [self.appSettings setTempFG2Location:        defs[XRG_tempFG2Location]];
+    [self.appSettings setTempFG3Location:        defs[XRG_tempFG3Location]];
 
     [self.appSettings setNetMinGraphScale:            [defs[XRG_netMinGraphScale] intValue]];
     [self.appSettings setNetGraphMode:                [defs[XRG_netGraphMode] intValue]];
@@ -805,18 +812,18 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [self.temperatureView setNeedsDisplay:YES];
 }
 
-- (IBAction)setTempFG1Location:(id)sender {
-    [self.appSettings setTempFG1Location:[sender indexOfSelectedItem]];
+- (IBAction)setTempFG1Location:(NSMenuItem *)sender {
+    [self.appSettings setTempFG1Location:sender.representedObject];
     [self.temperatureView setNeedsDisplay:YES];
 }
 
-- (IBAction)setTempFG2Location:(id)sender {
-    [self.appSettings setTempFG2Location:[sender indexOfSelectedItem]];
+- (IBAction)setTempFG2Location:(NSMenuItem *)sender {
+    [self.appSettings setTempFG2Location:sender.representedObject];
     [self.temperatureView setNeedsDisplay:YES];
 }
 
-- (IBAction)setTempFG3Location:(id)sender {
-    [self.appSettings setTempFG3Location:[sender indexOfSelectedItem]];
+- (IBAction)setTempFG3Location:(NSMenuItem *)sender {
+    [self.appSettings setTempFG3Location:sender.representedObject];
     [self.temperatureView setNeedsDisplay:YES];
 }
 
@@ -909,7 +916,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
         [self setLevel:NSFloatingWindowLevel];
     }
     else {
-        [self setLevel:kCGDesktopWindowLevel];
+        [self setLevel:kCGBackstopMenuLevel];
     }
 }
 

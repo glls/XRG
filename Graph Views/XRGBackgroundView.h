@@ -44,21 +44,17 @@
     NSRect              unminimizedRect;
 	
 	NSPoint				viewPointClicked;
-	
-	NSTrackingRectTag	trackingRect;
 }
 
 @property NSString *hostname;
 @property NSArray *resizeRects;
 
-@property NSBezierPath *outerPath;
-@property NSBezierPath *innerPath;
+@property NSTrackingArea *trackingArea;
 
 @property BOOL clickedMinimized;
 
 - (void)getHostname;
 - (void)offsetDrawingOrigin:(NSSize)offset;
-- (void)resizeSubviewsWithOldSize:(NSSize)oldBoundsSize;
 - (void)minimizeWindow;
 - (void)expandWindow;
 - (void)mouseDownAction:(NSEvent *)theEvent;

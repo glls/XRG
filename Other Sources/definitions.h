@@ -50,6 +50,8 @@ typedef struct network_interface_stats {
 #define XRG_windowOriginX               @"windowOriginX"
 #define XRG_windowOriginY               @"windowOriginY"
 
+#define XRG_showSensorWindow            @"showSensorWindow"
+
 #define XRG_borderWidth					@"borderWidth"
 #define XRG_graphOrientationVertical	@"graphOrientationVertical"
 #define XRG_antiAliasing				@"antiAliasing"
@@ -64,6 +66,7 @@ typedef struct network_interface_stats {
 #define XRG_showSummary                 @"showSummary"
 #define XRG_minimizeUpDown              @"minimizeUpDown"
 #define XRG_windowIsMinimized			@"windowIsMinimized"
+#define XRG_isDockIconHidden            @"isDockIconHidden"
 
 #define XRG_backgroundColor				@"backgroundColor"
 #define XRG_graphBGColor				@"graphBGColor"
@@ -82,7 +85,7 @@ typedef struct network_interface_stats {
 #define XRG_graphFont					@"graphFont"
 #define XRG_antialiasText				@"antialiasText"
 
-#define XRG_fastCPUUsage				@"fastCPUUsage"
+#define XRG_showCPUBars                 @"showCPUBars"
 #define XRG_separateCPUColor			@"separateCPUColor"
 #define XRG_showCPUTemperature			@"showCPUTemperature"
 #define XRG_cpuTemperatureUnits			@"cpuTemperatureUnits"
@@ -104,6 +107,7 @@ typedef struct network_interface_stats {
 #define XRG_tempFG3Location             @"tempFG3Location"
 #define XRG_tempFanSpeed				@"tempFanSpeed"
 #define XRG_tempShowUnknownSensors      @"tempShowUnknownSensors"
+#define XRG_tempLocationsAutoconfigured @"tempLocationsAutoconfigured"
 
 #define XRG_netMinGraphScale			@"netMinGraphScale"
 #define XRG_netGraphMode				@"netGraphMode"

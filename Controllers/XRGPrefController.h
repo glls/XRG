@@ -25,6 +25,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "XRGTemperatureMiner.h"
 
 @class XRGGraphWindow;
 
@@ -103,9 +104,9 @@
     IBOutlet id memoryShowPagingGraph;
     
     IBOutlet id tempUnits;
-    IBOutlet id tempFG1Location;
-    IBOutlet id tempFG2Location;
-    IBOutlet id tempFG3Location;
+    IBOutlet NSPopUpButton *tempFG1Location;
+    IBOutlet NSPopUpButton *tempFG2Location;
+    IBOutlet NSPopUpButton *tempFG3Location;
     
     IBOutlet id networkInterface;
     IBOutlet id netMinGraphScaleUnits;
@@ -133,6 +134,7 @@
 }
 
 @property (weak) XRGGraphWindow *xrgGraphWindow;
+@property NSArray<XRGSensorData *> *temperatureSensors;
 
 - (IBAction)save:(id)sender;
 - (IBAction)revert:(id)sender;

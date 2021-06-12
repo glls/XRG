@@ -57,15 +57,18 @@
 @property CGFloat currentLoadAverage;
 
 @property NSInteger *fastValues;
-@property NSMutableArray *userValues;
-@property NSMutableArray *systemValues;
-@property NSMutableArray *niceValues;
+@property NSMutableArray<XRGDataSet *> *userValues;
+@property NSMutableArray<XRGDataSet *> *systemValues;
+@property NSMutableArray<XRGDataSet *> *niceValues;
+
++ (NSString *)systemModelIdentifier;
 
 - (void)graphUpdate:(NSTimer *)aTimer;
 - (void)fastUpdate:(NSTimer *)aTimer;
 - (NSInteger)calculateCPUUsageForCPUs:(processor_cpu_load_info_t *)lastCPUInfo count:(NSInteger)count;
 - (NSInteger)getNumCPUs;
 - (CGFloat)getLoadAverage;
+- (void)reset;
 
 - (void)setCurrentUptime;
 - (void)setDataSize:(NSInteger)newNumSamples;

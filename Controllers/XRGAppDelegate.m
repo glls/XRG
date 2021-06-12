@@ -55,7 +55,25 @@
     else if ([panelName isEqualTo:@"Appearance"])  [self.prefController Colors:self];
 }
 
-- (void) changeFont:(id)sender {
+- (IBAction)openSensorWindow:(id)sender {
+    if (!self.sensorViewController) {
+        [NSBundle.mainBundle loadNibNamed:@"Sensors" owner:self topLevelObjects:nil];
+    }
+
+    [self.sensorWindow setLevel:NSNormalWindowLevel];
+    [self.sensorWindow makeKeyAndOrderFront:self];
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:XRG_showSensorWindow];
+}
+
+- (BOOL)windowShouldClose:(NSWindow *)sender {
+    if (sender == self.sensorWindow) {
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:XRG_showSensorWindow];
+    }
+
+    return YES;
+}
+
+- (void)changeFont:(id)sender {
     NSFont *oldFont = [[self.xrgGraphWindow appSettings] graphFont];
     NSFont *newFont = [sender convertFont:oldFont];
     if (oldFont == newFont) return;
@@ -66,11 +84,11 @@
 }
 
 // Cleanup when the application exits caused by a restart or logout
-- (void) NSWorkSpaceWillPowerOffNotification:(NSNotification *)aNotification {
+- (void)NSWorkSpaceWillPowerOffNotification:(NSNotification *)aNotification {
     [self.xrgGraphWindow cleanupBeforeExiting];
 }
 
-- (void) applicationDidFinishLaunching:(NSNotification *)aNotification {
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	[self.xrgGraphWindow.moduleManager windowChangedToSize:self.xrgGraphWindow.frame.size];
 	
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:XRG_windowIsMinimized]) {
@@ -78,14 +96,26 @@
 		[self.xrgGraphWindow.backgroundView minimizeWindow];
 		[self.xrgGraphWindow.backgroundView setClickedMinimized:YES];
 	}
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:XRG_showSensorWindow]) {
+        [self openSensorWindow:self];
+    }
+
+    // This is an ugly hack, but we were running into an issue where the menubar wouldn't be selectable at launch until switching to another app and back to XRG (issue exists as of macOS 10.15).  This will perform that programmatically, and switches to the Dock so the user doesn't notice any UI changes.
+    [[[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.dock"] firstObject] activateWithOptions:0];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [NSApp activateIgnoringOtherApps:YES];
+    });
 }
 
 // Cleanup when the application is quit by the user.
-- (void) applicationWillTerminate:(NSNotification *)aNotification {
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
     [self.xrgGraphWindow cleanupBeforeExiting];
 }
 
-- (BOOL) application:(NSApplication *)theApplication openFile:(NSString *)filename {
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename {
+    if ([filename length] == 0) return NO;
+    
 	NSData *themeData = [NSData dataWithContentsOfFile:filename];
 	
 	if ([themeData length] == 0) {
@@ -111,6 +141,14 @@
 	[self.prefController setUpColorPanel];
 
 	return YES;
+}
+
+- (XRGSettings *)appSettings {
+    return [self.xrgGraphWindow appSettings];
+}
+
+- (XRGModuleManager *)moduleManager {
+    return [self.xrgGraphWindow moduleManager];
 }
 
 @end

@@ -53,14 +53,21 @@
 		275842181D8E3F4800D0281F /* XRGNetMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 275842171D8E3F4800D0281F /* XRGNetMiner.m */; };
 		278606211B445FED00CC6249 /* XRGGPUMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 278606201B445FED00CC6249 /* XRGGPUMiner.m */; };
 		278606241B44741B00CC6249 /* XRGGPUView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278606231B44741B00CC6249 /* XRGGPUView.m */; };
+		278E90B923F21F6600874941 /* Sensors.xib in Resources */ = {isa = PBXBuildFile; fileRef = 278E90B823F21F6600874941 /* Sensors.xib */; };
+		27AB7CFE2558F031002F6773 /* XRGSensorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AB7CFD2558F031002F6773 /* XRGSensorViewController.m */; };
+		27C3A8A52551B4A40004F2EC /* XRGStatsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 27C3A8A42551B4A40004F2EC /* XRGStatsManager.m */; };
+		27DA9FA22566232500DACB07 /* XRGFlippedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27DA9FA12566232500DACB07 /* XRGFlippedView.m */; };
+		93151A0D254094EF0095E424 /* SMCSensorNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = 93151A0C254094EF0095E424 /* SMCSensorNames.plist */; };
 		937851AA157CA243001D2A15 /* SMCInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = 937851A8157CA243001D2A15 /* SMCInterface.m */; };
 		937851AD157CA5D0001D2A15 /* SMCSensors.m in Sources */ = {isa = PBXBuildFile; fileRef = 937851AC157CA5D0001D2A15 /* SMCSensors.m */; };
+		93C915F32550346600220EC5 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93C915F22550346600220EC5 /* Accelerate.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		27186E2A1D88EA7A003DF559 /* XRGCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XRGCommon.h; sourceTree = "<group>"; };
 		27186E2B1D88EA7A003DF559 /* XRGCommon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XRGCommon.m; sourceTree = "<group>"; };
 		271FA60E15AC79A100E16233 /* Online Help */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "Online Help"; sourceTree = "<group>"; };
+		272DD59A21DE8B93007FA11C /* XRG.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = XRG.entitlements; sourceTree = SOURCE_ROOT; };
 		273ECE6515740DE700E65D82 /* XRG.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XRG.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		273ECE6915740DE700E65D82 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		273ECE6C15740DE700E65D82 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -142,10 +149,19 @@
 		278606201B445FED00CC6249 /* XRGGPUMiner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XRGGPUMiner.m; sourceTree = "<group>"; };
 		278606221B44741B00CC6249 /* XRGGPUView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XRGGPUView.h; sourceTree = "<group>"; };
 		278606231B44741B00CC6249 /* XRGGPUView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XRGGPUView.m; sourceTree = "<group>"; };
+		278E90B823F21F6600874941 /* Sensors.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Sensors.xib; sourceTree = "<group>"; };
+		27AB7CFC2558F031002F6773 /* XRGSensorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGSensorViewController.h; sourceTree = "<group>"; };
+		27AB7CFD2558F031002F6773 /* XRGSensorViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGSensorViewController.m; sourceTree = "<group>"; };
+		27C3A8A32551B4A40004F2EC /* XRGStatsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGStatsManager.h; sourceTree = "<group>"; };
+		27C3A8A42551B4A40004F2EC /* XRGStatsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGStatsManager.m; sourceTree = "<group>"; };
+		27DA9FA02566232500DACB07 /* XRGFlippedView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGFlippedView.h; sourceTree = "<group>"; };
+		27DA9FA12566232500DACB07 /* XRGFlippedView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGFlippedView.m; sourceTree = "<group>"; };
+		93151A0C254094EF0095E424 /* SMCSensorNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SMCSensorNames.plist; sourceTree = "<group>"; };
 		937851A7157CA243001D2A15 /* SMCInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMCInterface.h; sourceTree = "<group>"; };
 		937851A8157CA243001D2A15 /* SMCInterface.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMCInterface.m; sourceTree = "<group>"; };
 		937851AB157CA5D0001D2A15 /* SMCSensors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMCSensors.h; sourceTree = "<group>"; };
 		937851AC157CA5D0001D2A15 /* SMCSensors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMCSensors.m; sourceTree = "<group>"; };
+		93C915F22550346600220EC5 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,6 +169,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93C915F32550346600220EC5 /* Accelerate.framework in Frameworks */,
 				273ECF661574145100E65D82 /* IOKit.framework in Frameworks */,
 				273ECE6A15740DE700E65D82 /* Cocoa.framework in Frameworks */,
 			);
@@ -181,6 +198,7 @@
 		273ECE6815740DE700E65D82 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				93C915F22550346600220EC5 /* Accelerate.framework */,
 				2775AC211B42F4A700D867AC /* OpenGL.framework */,
 				273ECE6915740DE700E65D82 /* Cocoa.framework */,
 				273ECF651574145100E65D82 /* IOKit.framework */,
@@ -202,6 +220,7 @@
 		273ECE6F15740DE700E65D82 /* XRG */ = {
 			isa = PBXGroup;
 			children = (
+				272DD59A21DE8B93007FA11C /* XRG.entitlements */,
 				273ECF6D157803EF00E65D82 /* XRG-Info.plist */,
 				273ECE8B15740EAF00E65D82 /* Controllers */,
 				273ECE9415740EAF00E65D82 /* Data Miners */,
@@ -210,7 +229,7 @@
 				273ECEBA15740EAF00E65D82 /* Resources */,
 				273ECEE515740EAF00E65D82 /* Utility */,
 			);
-			path = XRG;
+			name = XRG;
 			sourceTree = "<group>";
 		};
 		273ECE8B15740EAF00E65D82 /* Controllers */ = {
@@ -222,6 +241,8 @@
 				273ECE8F15740EAF00E65D82 /* XRGPrefController.m */,
 				273ECE9215740EAF00E65D82 /* XRGGraphWindow.h */,
 				273ECE9315740EAF00E65D82 /* XRGGraphWindow.m */,
+				27AB7CFC2558F031002F6773 /* XRGSensorViewController.h */,
+				27AB7CFD2558F031002F6773 /* XRGSensorViewController.m */,
 			);
 			path = Controllers;
 			sourceTree = SOURCE_ROOT;
@@ -293,8 +314,10 @@
 				271FA60E15AC79A100E16233 /* Online Help */,
 				273ECF63157413D200E65D82 /* icon.icns */,
 				273ECF4F1574106600E65D82 /* InfoPlist.strings */,
+				93151A0C254094EF0095E424 /* SMCSensorNames.plist */,
 				273ECF501574106600E65D82 /* MainMenu.nib */,
 				273ECF511574106600E65D82 /* Preferences.nib */,
+				278E90B823F21F6600874941 /* Sensors.xib */,
 				273ECED915740EAF00E65D82 /* Preferences-Appearance.tiff */,
 				273ECEDA15740EAF00E65D82 /* Preferences-CPU.tiff */,
 				273ECEDB15740EAF00E65D82 /* Preferences-Disk.tiff */,
@@ -328,6 +351,10 @@
 				273ECEF915740EAF00E65D82 /* XRGURL.m */,
 				27186E2A1D88EA7A003DF559 /* XRGCommon.h */,
 				27186E2B1D88EA7A003DF559 /* XRGCommon.m */,
+				27C3A8A32551B4A40004F2EC /* XRGStatsManager.h */,
+				27C3A8A42551B4A40004F2EC /* XRGStatsManager.m */,
+				27DA9FA02566232500DACB07 /* XRGFlippedView.h */,
+				27DA9FA12566232500DACB07 /* XRGFlippedView.m */,
 			);
 			path = Utility;
 			sourceTree = SOURCE_ROOT;
@@ -370,20 +397,26 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = XRG;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 1210;
 				ORGANIZATIONNAME = "Gaucho Software";
 				TargetAttributes = {
 					273ECE6415740DE700E65D82 = {
 						DevelopmentTeam = 28EXY66HMA;
+						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
 			buildConfigurationList = 273ECE5F15740DE700E65D82 /* Build configuration list for PBXProject "XRG" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 273ECE5A15740DE700E65D82;
 			productRefGroup = 273ECE6615740DE700E65D82 /* Products */;
@@ -409,12 +442,14 @@
 				273ECF3015740EAF00E65D82 /* Preferences-Stocks.tiff in Resources */,
 				273ECF3115740EAF00E65D82 /* Preferences-Temperature.tiff in Resources */,
 				273ECF3215740EAF00E65D82 /* Preferences-Weather.tiff in Resources */,
+				278E90B923F21F6600874941 /* Sensors.xib in Resources */,
 				273ECF3515740EAF00E65D82 /* xtf.icns in Resources */,
 				273ECF531574106600E65D82 /* InfoPlist.strings in Resources */,
 				273ECF541574106600E65D82 /* MainMenu.nib in Resources */,
 				273ECF551574106600E65D82 /* Preferences.nib in Resources */,
 				273ECF64157413D200E65D82 /* icon.icns in Resources */,
 				271FA60F15AC79A100E16233 /* Online Help in Resources */,
+				93151A0D254094EF0095E424 /* SMCSensorNames.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,13 +462,16 @@
 			files = (
 				273ECEFA15740EAF00E65D82 /* XRGAppDelegate.m in Sources */,
 				273ECEFB15740EAF00E65D82 /* XRGPrefController.m in Sources */,
+				27AB7CFE2558F031002F6773 /* XRGSensorViewController.m in Sources */,
 				273ECEFD15740EAF00E65D82 /* XRGGraphWindow.m in Sources */,
 				273ECEFF15740EAF00E65D82 /* XRGCPUMiner.m in Sources */,
 				273ECF0015740EAF00E65D82 /* XRGMemoryMiner.m in Sources */,
 				273ECF0115740EAF00E65D82 /* XRGProcessMiner.m in Sources */,
+				27C3A8A52551B4A40004F2EC /* XRGStatsManager.m in Sources */,
 				273ECF0215740EAF00E65D82 /* XRGTemperatureMiner.m in Sources */,
 				273ECF0315740EAF00E65D82 /* XRGBackgroundView.m in Sources */,
 				27186E2C1D88EA7A003DF559 /* XRGCommon.m in Sources */,
+				27DA9FA22566232500DACB07 /* XRGFlippedView.m in Sources */,
 				273ECF0415740EAF00E65D82 /* XRGBatteryView.m in Sources */,
 				273ECF0515740EAF00E65D82 /* XRGCPUView.m in Sources */,
 				273ECF0615740EAF00E65D82 /* XRGDiskView.m in Sources */,
@@ -466,12 +504,22 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -495,7 +543,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -505,12 +553,22 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -527,7 +585,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -538,12 +596,15 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 3.0;
 				DEVELOPMENT_TEAM = 28EXY66HMA;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Other Sources/XRG-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "XRG-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.piatekjimenez.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -556,12 +617,15 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 3.0;
 				DEVELOPMENT_TEAM = 28EXY66HMA;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Other Sources/XRG-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "XRG-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.piatekjimenez.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

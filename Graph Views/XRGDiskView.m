@@ -39,7 +39,7 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
 
 - (void)awakeFromNib {    
     currentIndex = 0;
-    maxVal       = 0;
+    maxVal       = 1;
 	fastMax      = 1024 * 1024;
               
     parentWindow = (XRGGraphWindow *)[self window];
@@ -94,7 +94,7 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
     tmpSize.width = newSize.width;
     tmpSize.height = newSize.height;
     if (tmpSize.width < 1) tmpSize.width = 1;
-    if (tmpSize.width > 2000) tmpSize.width = 2000;
+    if (tmpSize.width > 20000) tmpSize.width = 20000;
     [self setWidth:tmpSize.width];
     graphSize = tmpSize;
 }
@@ -165,6 +165,10 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
 		
 		fast_i.bytes_delta = fast_i.bytes - fast_i.bytes_prev;
 		fast_o.bytes_delta = fast_o.bytes - fast_o.bytes_prev;
+        
+        // Check for overflow.
+        if (fast_i.bytes_delta > pow(2, 63)) fast_i.bytes_delta = 0;
+        if (fast_o.bytes_delta > pow(2, 63)) fast_o.bytes_delta = 0;
 		
         fastReadBytes = [XRGCommon dampedValueUsingPreviousValue:fastReadBytes currentValue:fast_i.bytes_delta / [appSettings graphRefresh]];
         fastWriteBytes = [XRGCommon dampedValueUsingPreviousValue:fastWriteBytes currentValue:fast_o.bytes_delta / [appSettings graphRefresh]];
@@ -191,6 +195,10 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
     i_dsk.bytes_delta = i_dsk.bytes - i_dsk.bytes_prev;
     o_dsk.bytes_delta = o_dsk.bytes - o_dsk.bytes_prev;
     
+    // Check for overflow.
+    if (i_dsk.bytes_delta > pow(2, 63)) i_dsk.bytes_delta = 0;
+    if (o_dsk.bytes_delta > pow(2, 63)) o_dsk.bytes_delta = 0;
+
     writeBytes = o_dsk.bytes_delta / [appSettings graphRefresh];
     readBytes = i_dsk.bytes_delta / [appSettings graphRefresh];
 
@@ -416,10 +424,14 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
     NSMenu *myMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@"Disk View"];
-    NSMenuItem *tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Disk Utility..." action:@selector(openDiskUtility:) keyEquivalent:@""];
+
+    NSMenuItem *tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
     [myMenu addItem:tMI];
-    
+
     [myMenu addItem:[NSMenuItem separatorItem]];
+    
+    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Disk Utility..." action:@selector(openDiskUtility:) keyEquivalent:@""];
+    [myMenu addItem:tMI];
     
     tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Disk Preferences..." action:@selector(openDiskPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
@@ -430,12 +442,22 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
 - (void)openDiskUtility:(NSEvent *)theEvent {
     [NSTask 
       launchedTaskWithLaunchPath:@"/usr/bin/open"
-      arguments:@[@"/Applications/Utilities/Disk Utility.app"]
+      arguments:@[@"-a", @"Disk Utility.app"]
     ];
 }
 
 - (void)openDiskPreferences:(NSEvent *)theEvent {
     [[parentWindow controller] showPrefsWithPanel:@"Disk"];
+}
+
+- (void)clearData:(NSEvent *)theEvent {
+    for (NSInteger i = 0; i < numSamples; i++) {
+        values[i] = 0;
+        readValues[i] = 0;
+        writeValues[i] = 0;
+    }
+
+    maxVal = 1;
 }
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent {       
@@ -495,29 +517,32 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk)
 
         /* Obtain the statistics from the drive properties */
         statisticsRaw = IORegistryEntryCreateCFProperty(drive, CFSTR(kIOBlockStorageDriverStatisticsKey), kCFAllocatorDefault, kNilOptions);
-        if (CFGetTypeID(statisticsRaw) == CFDictionaryGetTypeID()) {
-            CFDictionaryRef statistics = (CFDictionaryRef)statisticsRaw;
-            
-            if (statistics) {
-                /* Obtain the number of bytes read from the drive statistics */
-                number = (CFNumberRef) CFDictionaryGetValue(statistics, CFSTR(kIOBlockStorageDriverStatisticsBytesReadKey));
-                if (number) {
-                    CFNumberGetValue(number, kCFNumberSInt64Type, &value);
-                    totalReadBytes += value;
-                }
-                
-                /* Obtain the number of bytes written from the drive statistics */
-                number = (CFNumberRef) CFDictionaryGetValue (statistics, CFSTR(kIOBlockStorageDriverStatisticsBytesWrittenKey));
-                if (number) {
-                    CFNumberGetValue(number, kCFNumberSInt64Type, &value);
-                    totalWriteBytes += value;
+        if (statisticsRaw) {
+            if (CFGetTypeID(statisticsRaw) == CFDictionaryGetTypeID()) {
+                CFDictionaryRef statistics = (CFDictionaryRef)statisticsRaw;
+
+                if (statistics) {
+                    /* Obtain the number of bytes read from the drive statistics */
+                    number = (CFNumberRef) CFDictionaryGetValue(statistics, CFSTR(kIOBlockStorageDriverStatisticsBytesReadKey));
+                    if (number) {
+                        CFNumberGetValue(number, kCFNumberSInt64Type, &value);
+                        totalReadBytes += value;
+                    }
+
+                    /* Obtain the number of bytes written from the drive statistics */
+                    number = (CFNumberRef) CFDictionaryGetValue (statistics, CFSTR(kIOBlockStorageDriverStatisticsBytesWrittenKey));
+                    if (number) {
+                        CFNumberGetValue(number, kCFNumberSInt64Type, &value);
+                        totalWriteBytes += value;
+                    }
                 }
             }
+
+            /* Release resources */
+
+            CFRelease(statisticsRaw); statisticsRaw = 0;
         }
-        
-        /* Release resources */
-        
-        CFRelease(statisticsRaw); statisticsRaw = 0;
+
         IOObjectRelease(drive); drive = 0;
 
     }
