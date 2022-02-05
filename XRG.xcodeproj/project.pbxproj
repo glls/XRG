@@ -50,10 +50,14 @@
 		273ECF551574106600E65D82 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 273ECF511574106600E65D82 /* Preferences.nib */; };
 		273ECF64157413D200E65D82 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 273ECF63157413D200E65D82 /* icon.icns */; };
 		273ECF661574145100E65D82 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273ECF651574145100E65D82 /* IOKit.framework */; };
+		27461834273716B10065D1E4 /* XRGAppleSiliconSensorMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 27461833273716B10065D1E4 /* XRGAppleSiliconSensorMiner.m */; };
+		274AEDE52784BA5F008445AC /* XRGNonInteractableTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 274AEDE42784BA5F008445AC /* XRGNonInteractableTextField.m */; };
+		2755BBBC277E390200461C51 /* SMCSensorGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 2755BBBB277E390200461C51 /* SMCSensorGroup.m */; };
 		275842181D8E3F4800D0281F /* XRGNetMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 275842171D8E3F4800D0281F /* XRGNetMiner.m */; };
 		278606211B445FED00CC6249 /* XRGGPUMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 278606201B445FED00CC6249 /* XRGGPUMiner.m */; };
 		278606241B44741B00CC6249 /* XRGGPUView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278606231B44741B00CC6249 /* XRGGPUView.m */; };
 		278E90B923F21F6600874941 /* Sensors.xib in Resources */ = {isa = PBXBuildFile; fileRef = 278E90B823F21F6600874941 /* Sensors.xib */; };
+		2790FF812732BC6200B0A269 /* XRGBatteryMiner.m in Sources */ = {isa = PBXBuildFile; fileRef = 2790FF802732BC6200B0A269 /* XRGBatteryMiner.m */; };
 		27AB7CFE2558F031002F6773 /* XRGSensorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27AB7CFD2558F031002F6773 /* XRGSensorViewController.m */; };
 		27C3A8A52551B4A40004F2EC /* XRGStatsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 27C3A8A42551B4A40004F2EC /* XRGStatsManager.m */; };
 		27DA9FA22566232500DACB07 /* XRGFlippedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27DA9FA12566232500DACB07 /* XRGFlippedView.m */; };
@@ -142,6 +146,16 @@
 		273ECF63157413D200E65D82 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		273ECF651574145100E65D82 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		273ECF6D157803EF00E65D82 /* XRG-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "XRG-Info.plist"; sourceTree = SOURCE_ROOT; };
+		27461832273716B10065D1E4 /* XRGAppleSiliconSensorMiner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGAppleSiliconSensorMiner.h; sourceTree = "<group>"; };
+		27461833273716B10065D1E4 /* XRGAppleSiliconSensorMiner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGAppleSiliconSensorMiner.m; sourceTree = "<group>"; };
+		2746183527371FB90065D1E4 /* IOHIDEventTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOHIDEventTypes.h; sourceTree = "<group>"; };
+		27461836273722E40065D1E4 /* AppleHIDUsageTables.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppleHIDUsageTables.h; sourceTree = "<group>"; };
+		2746183A2738C1D90065D1E4 /* libsystem_kernel.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_kernel.tbd; path = usr/lib/system/libsystem_kernel.tbd; sourceTree = SDKROOT; };
+		2746183B2738C1F30065D1E4 /* Kernel.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Kernel.framework; path = System/Library/Frameworks/Kernel.framework; sourceTree = SDKROOT; };
+		274AEDE32784BA5F008445AC /* XRGNonInteractableTextField.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGNonInteractableTextField.h; sourceTree = "<group>"; };
+		274AEDE42784BA5F008445AC /* XRGNonInteractableTextField.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGNonInteractableTextField.m; sourceTree = "<group>"; };
+		2755BBBA277E390200461C51 /* SMCSensorGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SMCSensorGroup.h; sourceTree = "<group>"; };
+		2755BBBB277E390200461C51 /* SMCSensorGroup.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SMCSensorGroup.m; sourceTree = "<group>"; };
 		275842161D8E3F4800D0281F /* XRGNetMiner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XRGNetMiner.h; sourceTree = "<group>"; };
 		275842171D8E3F4800D0281F /* XRGNetMiner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XRGNetMiner.m; sourceTree = "<group>"; };
 		2775AC211B42F4A700D867AC /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -150,6 +164,8 @@
 		278606221B44741B00CC6249 /* XRGGPUView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XRGGPUView.h; sourceTree = "<group>"; };
 		278606231B44741B00CC6249 /* XRGGPUView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XRGGPUView.m; sourceTree = "<group>"; };
 		278E90B823F21F6600874941 /* Sensors.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = Sensors.xib; sourceTree = "<group>"; };
+		2790FF7F2732BC6200B0A269 /* XRGBatteryMiner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGBatteryMiner.h; sourceTree = "<group>"; };
+		2790FF802732BC6200B0A269 /* XRGBatteryMiner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGBatteryMiner.m; sourceTree = "<group>"; };
 		27AB7CFC2558F031002F6773 /* XRGSensorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGSensorViewController.h; sourceTree = "<group>"; };
 		27AB7CFD2558F031002F6773 /* XRGSensorViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XRGSensorViewController.m; sourceTree = "<group>"; };
 		27C3A8A32551B4A40004F2EC /* XRGStatsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRGStatsManager.h; sourceTree = "<group>"; };
@@ -198,6 +214,8 @@
 		273ECE6815740DE700E65D82 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2746183B2738C1F30065D1E4 /* Kernel.framework */,
+				2746183A2738C1D90065D1E4 /* libsystem_kernel.tbd */,
 				93C915F22550346600220EC5 /* Accelerate.framework */,
 				2775AC211B42F4A700D867AC /* OpenGL.framework */,
 				273ECE6915740DE700E65D82 /* Cocoa.framework */,
@@ -263,6 +281,8 @@
 				278606201B445FED00CC6249 /* XRGGPUMiner.m */,
 				275842161D8E3F4800D0281F /* XRGNetMiner.h */,
 				275842171D8E3F4800D0281F /* XRGNetMiner.m */,
+				2790FF7F2732BC6200B0A269 /* XRGBatteryMiner.h */,
+				2790FF802732BC6200B0A269 /* XRGBatteryMiner.m */,
 			);
 			path = "Data Miners";
 			sourceTree = SOURCE_ROOT;
@@ -355,6 +375,8 @@
 				27C3A8A42551B4A40004F2EC /* XRGStatsManager.m */,
 				27DA9FA02566232500DACB07 /* XRGFlippedView.h */,
 				27DA9FA12566232500DACB07 /* XRGFlippedView.m */,
+				274AEDE32784BA5F008445AC /* XRGNonInteractableTextField.h */,
+				274AEDE42784BA5F008445AC /* XRGNonInteractableTextField.m */,
 			);
 			path = Utility;
 			sourceTree = SOURCE_ROOT;
@@ -366,6 +388,12 @@
 				937851A8157CA243001D2A15 /* SMCInterface.m */,
 				937851AB157CA5D0001D2A15 /* SMCSensors.h */,
 				937851AC157CA5D0001D2A15 /* SMCSensors.m */,
+				2755BBBA277E390200461C51 /* SMCSensorGroup.h */,
+				2755BBBB277E390200461C51 /* SMCSensorGroup.m */,
+				27461832273716B10065D1E4 /* XRGAppleSiliconSensorMiner.h */,
+				27461833273716B10065D1E4 /* XRGAppleSiliconSensorMiner.m */,
+				2746183527371FB90065D1E4 /* IOHIDEventTypes.h */,
+				27461836273722E40065D1E4 /* AppleHIDUsageTables.h */,
 			);
 			path = APSL;
 			sourceTree = "<group>";
@@ -475,14 +503,17 @@
 				273ECF0415740EAF00E65D82 /* XRGBatteryView.m in Sources */,
 				273ECF0515740EAF00E65D82 /* XRGCPUView.m in Sources */,
 				273ECF0615740EAF00E65D82 /* XRGDiskView.m in Sources */,
+				2790FF812732BC6200B0A269 /* XRGBatteryMiner.m in Sources */,
 				273ECF0715740EAF00E65D82 /* XRGGenericView.m in Sources */,
 				273ECF0815740EAF00E65D82 /* XRGMemoryView.m in Sources */,
 				273ECF0915740EAF00E65D82 /* XRGNetView.m in Sources */,
+				2755BBBC277E390200461C51 /* SMCSensorGroup.m in Sources */,
 				278606241B44741B00CC6249 /* XRGGPUView.m in Sources */,
 				273ECF0A15740EAF00E65D82 /* XRGStockView.m in Sources */,
 				278606211B445FED00CC6249 /* XRGGPUMiner.m in Sources */,
 				273ECF0B15740EAF00E65D82 /* XRGTemperatureView.m in Sources */,
 				273ECF0C15740EAF00E65D82 /* XRGWeatherView.m in Sources */,
+				27461834273716B10065D1E4 /* XRGAppleSiliconSensorMiner.m in Sources */,
 				275842181D8E3F4800D0281F /* XRGNetMiner.m in Sources */,
 				273ECF0D15740EAF00E65D82 /* main.m in Sources */,
 				273ECF3715740EAF00E65D82 /* NSStringUtil.m in Sources */,
@@ -490,6 +521,7 @@
 				273ECF3B15740EAF00E65D82 /* XRGModule.m in Sources */,
 				273ECF3C15740EAF00E65D82 /* XRGModuleManager.m in Sources */,
 				273ECF3D15740EAF00E65D82 /* XRGSettings.m in Sources */,
+				274AEDE52784BA5F008445AC /* XRGNonInteractableTextField.m in Sources */,
 				273ECF3E15740EAF00E65D82 /* XRGStock.m in Sources */,
 				273ECF3F15740EAF00E65D82 /* XRGURL.m in Sources */,
 				937851AA157CA243001D2A15 /* SMCInterface.m in Sources */,
@@ -596,7 +628,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.0;
+				CURRENT_PROJECT_VERSION = 3.1;
 				DEVELOPMENT_TEAM = 28EXY66HMA;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -604,7 +636,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "XRG-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 3.0;
+				MARKETING_VERSION = 3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.piatekjimenez.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -617,7 +649,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.0;
+				CURRENT_PROJECT_VERSION = 3.1;
 				DEVELOPMENT_TEAM = 28EXY66HMA;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -625,7 +657,7 @@
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "XRG-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MARKETING_VERSION = 3.0;
+				MARKETING_VERSION = 3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.piatekjimenez.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

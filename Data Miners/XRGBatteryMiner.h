@@ -21,47 +21,55 @@
  */
 
 //
-//  XRGNetMiner.h
+//  XRGBatteryMiner.h
 //
 
 #import <Foundation/Foundation.h>
-#import "definitions.h"
 #import "XRGDataSet.h"
 
-@interface XRGNetMiner : NSObject {
-    @private
-    io_stats                i_net, o_net;
-    NSInteger               pppInterfaceNum;
-    NSInteger               sendBytes;
-    NSInteger               recvBytes;
-    int                     mib[6];
-    char                    *buf;
-    size_t                  alloc;
-    
-    BOOL                    firstTimeStats;
-    
-    NSMutableArray          *networkInterfaces;
-}
+NS_ASSUME_NONNULL_BEGIN
 
-@property UInt64 totalBytesSinceBoot;
-@property UInt64 totalBytesSinceLoad;
+typedef NS_ENUM(NSInteger, XRGBatteryStatus) {
+    XRGBatteryStatusUnknown = 0,
+    XRGBatteryStatusRunningOnBattery = 1,
+    XRGBatteryStatusCharging = 2,
+    XRGBatteryStatusCharged = 3,
+    XRGBatteryStatusOnHold = 4,
+    XRGBatteryStatusNoBattery = 5
+};
 
-@property NSString *monitorNetworkInterface;
+@interface XRGBatteryInfo: NSObject
 
-@property (readonly) NSInteger numInterfaces;
-@property (readonly) network_interface_stats *interfaceStats;
+@property NSInteger currentCharge;
+@property NSInteger totalCapacity;
+@property CGFloat voltage;
+@property CGFloat amperage;
+@property NSInteger minutesRemaining;
+@property BOOL isCharging;
+@property BOOL isFullyCharged;
+@property BOOL isPluggedIn;
 
-@property (readonly) XRGDataSet *rxValues;
-@property (readonly) XRGDataSet *txValues;
-@property (readonly) XRGDataSet *totalValues;          // rxValues + txValues
-
-- (void)getLatestNetInfo;
-- (void)setDataSize:(NSInteger)newNumSamples;
-- (CGFloat)maxBandwidth;
-- (CGFloat)currentTX;
-- (CGFloat)currentRX;
-- (void)reset;
-
-- (NSArray *)networkInterfaces;
+- (CGFloat)percentCharged;
 
 @end
+
+@interface XRGBatteryMiner : NSObject
+
+@property (nonnull) NSArray<XRGBatteryInfo *> *batteries;
+@property (nonnull) XRGDataSet *chargeWatts;
+@property (nonnull) XRGDataSet *dischargeWatts;
+@property NSInteger numSamples;
+
+- (void)setDataSize:(NSInteger)newNumSamples;
+- (void)graphUpdate:(nullable NSTimer *)aTimer;
+- (void)reset;
+
+- (XRGBatteryStatus)batteryStatus;
+- (NSInteger)minutesRemaining;
+- (NSInteger)totalCharge;
+- (NSInteger)totalCapacity;
+- (NSInteger)chargePercent;
+
+@end
+
+NS_ASSUME_NONNULL_END

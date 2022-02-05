@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2016 Gaucho Software, LLC.
+ * Copyright (C) 2002-2022 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -25,6 +25,7 @@
 //
 
 #import "XRGTemperatureMiner.h"
+#import "XRGAppleSiliconSensorMiner.h"
 #import "XRGStatsManager.h"
 #import "definitions.h"
 
@@ -109,7 +110,7 @@
     }
 }
 
-- (void)updateCurrentTemperatures {
+- (void)updateCurrentTemperatures:(BOOL)includeUnknown {
     // Only refresh the temperature every 5 seconds.
     self.temperatureCounter = (self.temperatureCounter + 1) % 5;
     if (self.temperatureCounter != 1) {
@@ -121,11 +122,14 @@
         sensor.isEnabled = NO;
 	}
     	
-	// Intel: use SMC
+	// Gather SMC Data
 	@try {
-		[self trySMCTemperature];
+        [self trySMCTemperature:includeUnknown];
 	} @catch (NSException *e) {}
-		
+    
+    // Gather Apple Silicon Data
+    [self tryAppleSiliconTemperature];
+    
 	// Before returning, go through the values and find the ones that aren't enabled.
     for (XRGSensorData *sensor in self.sensorData.allValues) {
         if (!sensor.isEnabled) {
@@ -135,19 +139,18 @@
     }
 }
 
-- (void)trySMCTemperature {
-	NSDictionary *temperatureValues = [self.smcSensors temperatureValuesExtended:YES];
-	//NSLog(@"values: %@", temperatureValues);
+- (void)trySMCTemperature:(BOOL)includeUnknown {
+	NSDictionary *temperatureValues = [self.smcSensors temperatureValuesIncludingUnknown:includeUnknown];
 
     for (NSString *key in temperatureValues) {
 		id aValue = temperatureValues[key];
 		if (![aValue isKindOfClass:[NSNumber class]]) continue;		// Fix TE..
         
 		float temperature = [aValue floatValue];
-		// Throw out temperatures that are too high to be reasonable.
-		if (temperature > 150) {
+		// Throw out temperatures that are too low or too high to be reasonable.
+		if (temperature < 15 || temperature > 150) {
 			continue;
-		}
+        }
 
 		[self setCurrentValue:temperature
 					 andUnits:[NSString stringWithFormat:@"%CC", (unsigned short)0x00B0] 
@@ -182,6 +185,25 @@
                           forLocation:fanSpeedKey];
             }
         }
+    }
+}
+
+- (void)tryAppleSiliconTemperature {
+    NSDictionary *appleSiliconSensorData = [XRGAppleSiliconSensorMiner sensorData];
+    
+    for (NSString *key in appleSiliconSensorData) {
+        id aValue = appleSiliconSensorData[key];
+        if (![aValue isKindOfClass:[NSNumber class]]) continue;
+        
+        float temperature = [aValue floatValue];
+        // Throw out temperatures that are too low or too high to be reasonable.
+        if (temperature < 15 || temperature > 150) {
+            continue;
+        }
+
+        [self setCurrentValue:temperature
+                     andUnits:[NSString stringWithFormat:@"%CC", (unsigned short)0x00B0]
+                  forLocation:key];
     }
 }
 
@@ -269,7 +291,7 @@
 			// Matches CPU and CORE
 			NSRange r = [humanReadableLocation rangeOfString:@"CPU"];
 			if (r.location != NSNotFound) {
-				r = [humanReadableLocation rangeOfString:@"CORE"];
+				r = [humanReadableLocation rangeOfString:@"Core"];
 				if (r.location != NSNotFound) {
 					[tmpCPUCore addObject:location];
 					alreadyUsed[i] = YES;
@@ -360,7 +382,7 @@
         NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"self"
                                                                          ascending:YES
                                                                         comparator:^(id obj1, id obj2) {
-                                                                            return [obj1 compare:obj2 options:NSNumericSearch];
+                                                                            return [obj1 compare:obj2];
                                                                         }];
         
 		[self.locationKeysInOrder addObjectsFromArray:[tmpCPUCore sortedArrayUsingDescriptors:@[descriptor]]];

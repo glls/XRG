@@ -1,4 +1,4 @@
-/* 
+/*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
  * Copyright (C) 2002-2022 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
@@ -21,33 +21,15 @@
  */
 
 //
-//  XRGDataSet.h
-//  
+//  XRGNonInteractableTextField.h
+//
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
-@interface XRGDataSet : NSObject
+NS_ASSUME_NONNULL_BEGIN
 
-@property (nonatomic, assign) CGFloat *values;
-@property (nonatomic, assign) size_t numValues;
-@property (nonatomic, assign) NSInteger currentIndex;
-
-@property (nonatomic, assign) CGFloat min;
-@property (nonatomic, assign) CGFloat max;
-@property (nonatomic, assign) CGFloat sum;
-
-- (id) initWithContentsOfOtherDataSet:(XRGDataSet *)otherDataSet;
-
-- (CGFloat) average;
-- (CGFloat) currentValue;
-- (void) valuesInOrder:(CGFloat *)destinationArray;
-
-- (void) reset;
-- (void) resize:(size_t)newNumValues;
-- (void) setNextValue:(CGFloat)nextVal;
-- (void) setAllValues:(CGFloat)value;
-- (void) addOtherDataSetValues:(XRGDataSet *)otherDataSet;
-- (void) subtractOtherDataSetValues:(XRGDataSet *)otherDataSet;
-- (void) divideAllValuesBy:(CGFloat)dividend;
+@interface XRGNonInteractableTextField : NSTextField
 
 @end
+
+NS_ASSUME_NONNULL_END

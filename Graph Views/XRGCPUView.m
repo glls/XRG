@@ -1,6 +1,6 @@
 /* 
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2016 Gaucho Software, LLC.
+ * Copyright (C) 2002-2022 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -31,7 +31,9 @@
 
 @implementation XRGCPUView
 
-- (void)awakeFromNib {   
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
     parentWindow = (XRGGraphWindow *)[self window];
     [parentWindow setCpuView:self];
     [parentWindow initTimers];
@@ -246,9 +248,6 @@
     if ([cpuData count] < 3) return;
     
     NSRect textRect = [self paddedTextRect];
-    if ([appSettings fastCPUUsage]) {
-        textRect.size.width -= 7;
-    }
     
     NSMutableString *leftText = [NSMutableString string];
     NSMutableString *rightText = [NSMutableString string];

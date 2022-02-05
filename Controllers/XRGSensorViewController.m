@@ -1,6 +1,6 @@
 /*
  * XRG (X Resource Graph):  A system resource grapher for Mac OS X.
- * Copyright (C) 2002-2020 Gaucho Software, LLC.
+ * Copyright (C) 2002-2022 Gaucho Software, LLC.
  * You can view the complete license in the LICENSE file in the root
  * of the source tree.
  *
@@ -30,6 +30,7 @@
 #import "XRGSettings.h"
 #import "XRGAppDelegate.h"
 #import "XRGStatsManager.h"
+#import "XRGTemperatureView.h"
 
 @interface XRGSensorViewController ()
 
@@ -51,11 +52,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    __weak XRGSensorViewController *weakSelf = self;
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        [weakSelf refresh];
-    }];
-
     id appDelegate = [NSApp delegate];
     if ([appDelegate isKindOfClass:[XRGAppDelegate class]]) {
         self.appSettings = [(XRGAppDelegate *)appDelegate appSettings];
@@ -65,8 +61,24 @@
     [self.statsWidthConstraint setActive:YES];
 }
 
+- (void)viewWillAppear {
+    [super viewWillAppear];
+    
+    __weak XRGSensorViewController *weakSelf = self;
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        [weakSelf refresh];
+    }];
+}
+
+- (void)viewDidDisappear {
+    [super viewDidDisappear];
+    
+    [self.timer invalidate];
+    self.timer = nil;
+}
+
 - (void)refresh {
-    NSArray<NSString *> *sensorKeys = [[XRGTemperatureMiner shared] locationKeysIncludingUnknown:YES];
+    NSArray<NSString *> *sensorKeys = [[XRGTemperatureMiner shared] locationKeysIncludingUnknown:[XRGTemperatureView showUnknownSensors]];
 
     NSMutableString *sensorNames = [[NSMutableString alloc] init];
     NSMutableString *currentValues = [[NSMutableString alloc] init];
