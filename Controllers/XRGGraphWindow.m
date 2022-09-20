@@ -359,7 +359,7 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 				}
                 case 1:			// More Info
 				{
-					[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.gauchosoft.com/xrg/"]];
+					[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://www.gauchosoft.com/xrg/"]];
                     break;
 				}
 			}
@@ -739,7 +739,10 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
         case 26: [self.appSettings setBorderTransparency:     [sender floatValue]]; break;
         case 27: [self.appSettings setTextTransparency:       [sender floatValue]]; break;
     }
-	[[self contentView] setNeedsDisplay:YES];
+
+    for (NSView *subview in self.contentView.subviews) {
+        [subview setNeedsDisplay:YES];
+    }
 }
 
 - (IBAction)setFastCPUUsageCheckbox:(id)sender {

@@ -222,8 +222,14 @@
                 rightText = [NSString stringWithFormat:@"%@ / %@\n%@", [XRGCommon formattedStringForBytes:t - f], [XRGCommon formattedStringForBytes:t], usageText];
 			}
 		}
+
+        self.leftLabel.stringValue = @"";
+        self.centerLabel.stringValue = @"";
+        self.rightLabel.stringValue = @"";
         
-        [self drawLeftText:leftText centerText:centerText rightText:rightText inRect:textRect];
+        [leftText drawInRect:textRect withAttributes:[appSettings alignLeftAttributes]];
+        [centerText drawInRect:textRect withAttributes:[appSettings alignCenterAttributes]];
+        [rightText drawInRect:textRect withAttributes:[appSettings alignRightAttributes]];
 	}
 
 	[gc setShouldAntialias:YES];
