@@ -313,18 +313,15 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
         for (i = 0; i < numSamples; ++i) data[i] = (CGFloat)values[i];
     }
     
-    [self drawGraphWithData:data size:numSamples currentIndex:currentIndex maxValue:maxVal inRect:rect flipped:([appSettings diskGraphMode] == 1) color: [appSettings graphFG2Color]];
-    
+    [self drawGraphWithData:data size:numSamples currentIndex:currentIndex maxValue:maxVal inRect:bounds flipped:([appSettings diskGraphMode] == 1) color: [appSettings graphFG2Color]];
+
     for (i = 0; i < numSamples; ++i) data[i] = (CGFloat)writeValues[i];
 
-    [self drawGraphWithData:data size:numSamples currentIndex:currentIndex maxValue:maxVal inRect:rect flipped:([appSettings diskGraphMode] == 2) color: [appSettings graphFG1Color]];
+    [self drawGraphWithData:data size:numSamples currentIndex:currentIndex maxValue:maxVal inRect:bounds flipped:([appSettings diskGraphMode] == 2) color: [appSettings graphFG1Color]];
 
     [gc setShouldAntialias:YES];
-
     
     // draw the text
-    [gc setShouldAntialias:[appSettings antialiasText]];
-
     NSMutableString *leftText = [[NSMutableString alloc] init];
     NSMutableString *rightText = [[NSMutableString alloc] init];
 	
@@ -412,17 +409,17 @@ void getDISKcounters(io_iterator_t drivelist, io_stats *i_dsk, io_stats *o_dsk);
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
-    NSMenu *myMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@"Disk View"];
+    NSMenu *myMenu = [[NSMenu alloc] initWithTitle:@"Disk View"];
 
-    NSMenuItem *tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
+    NSMenuItem *tMI = [[NSMenuItem alloc] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
     [myMenu addItem:tMI];
 
     [myMenu addItem:[NSMenuItem separatorItem]];
     
-    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Disk Utility..." action:@selector(openDiskUtility:) keyEquivalent:@""];
+    tMI = [[NSMenuItem alloc] initWithTitle:@"Open Disk Utility..." action:@selector(openDiskUtility:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
-    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Disk Preferences..." action:@selector(openDiskPreferences:) keyEquivalent:@""];
+    tMI = [[NSMenuItem alloc] initWithTitle:@"Open XRG Disk Preferences..." action:@selector(openDiskPreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
     return myMenu;

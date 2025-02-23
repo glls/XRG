@@ -127,8 +127,6 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     
     appDefs[XRG_graphFont] = [NSArchiver archivedDataWithRootObject:[NSFont systemFontOfSize:10.0]];
                 
-    appDefs[XRG_antialiasText] = @"YES";
-    
     appDefs[XRG_windowWidth] = @"140";
     appDefs[XRG_windowHeight] = @"700";
 	
@@ -226,7 +224,6 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
     [self.appSettings setBorderColor:            [NSUnarchiver unarchiveObjectWithData: defs[XRG_borderColor]]];
     [self.appSettings setTextColor:              [NSUnarchiver unarchiveObjectWithData: defs[XRG_textColor]]];
     [self.appSettings setGraphFont:              [NSUnarchiver unarchiveObjectWithData: defs[XRG_graphFont]]];
-    [self.appSettings setAntialiasText:          [defs[XRG_antialiasText] boolValue]];
     [self.appSettings setBackgroundTransparency: [defs[XRG_backgroundTransparency] floatValue]];
     [self.appSettings setGraphBGTransparency:    [defs[XRG_graphBGTransparency] floatValue]];
     [self.appSettings setGraphFG1Transparency:   [defs[XRG_graphFG1Transparency] floatValue]];
@@ -283,8 +280,6 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
     //turn off opaqueness
     [self setOpaque:NO];
-
-    [self useOptimizedDrawing:YES];
 
     [self setHasShadow:self.appSettings.dropShadow];
     
@@ -700,12 +695,6 @@ void sleepNotification(void *refcon, io_service_t service, natural_t messageType
 
 - (IBAction)setMinimizeUpDown:(id)sender {
     [self.appSettings setMinimizeUpDown:[sender indexOfSelectedItem]];
-}
-
-- (IBAction)setAntialiasText:(id)sender {
-    [self.appSettings setAntialiasText:([sender state] == NSOnState)];
-    
-    [[self contentView] setNeedsDisplay:YES];
 }
 
 - (IBAction)setShowTotalBandwidthSinceBoot:(id)sender {

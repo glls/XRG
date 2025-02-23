@@ -226,7 +226,6 @@
     [defs setObject: ([generalForegroundWhenExpanding state] == NSOnState ? @"YES" : @"NO") forKey:XRG_foregroundWhenExpanding];
     [defs setObject: ([generalShowSummary state] == NSOnState ? @"YES" : @"NO")      forKey:XRG_showSummary];
     [defs setInteger: [generalMinimizeUpDown indexOfSelectedItem]                    forKey:XRG_minimizeUpDown];
-    [defs setObject: ([appearanceAntialiasText state] == NSOnState ? @"YES" : @"NO") forKey:XRG_antialiasText];
     
     [defs setObject: ([showCPUGraph state] == NSOnState ? @"YES" : @"NO")            forKey:XRG_showCPUGraph];    
 	[defs setObject: ([showGPUGraph state] == NSOnState ? @"YES" : @"NO")            forKey:XRG_showGPUGraph];
@@ -519,10 +518,6 @@
     
     [font setTarget:self];
     [font setAction:@selector(setFont:)];
-    
-    [appearanceAntialiasText setTarget:self.xrgGraphWindow];
-    [appearanceAntialiasText setAction:@selector(setAntialiasText:)];
-	[appearanceAntialiasText setState:self.xrgGraphWindow.appSettings.antialiasText ? NSOnState : NSOffState];
 }
 
 - (void)setUpCPUPanel {
@@ -1197,7 +1192,7 @@
 -(IBAction) openWeatherStationList:(id)sender {
     [NSTask 
         launchedTaskWithLaunchPath:@"/usr/bin/open"
-        arguments:@[@"https://www.aviationweather.gov/docs/metar/stations.txt"]
+        arguments:@[@"https://download.gauchosoft.com/xrg/stations.txt"]
     ];
 }
 

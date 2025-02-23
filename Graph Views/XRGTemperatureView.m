@@ -302,13 +302,29 @@
             float min = 0;
             float max = [[XRGTemperatureMiner shared] maxSpeedForFan:sensor];
 
-            CGContextFillRect(gc.CGContext, CGRectMake(barRect.origin.x, barRect.origin.y, MAX(1, ((locationValue - min) / (max - min)) * barRect.size.width), (i == 0) ? barRect.size.height : floor(barRect.size.height - 1)));
+            CGContextFillRect(
+                gc.CGContext,
+                CGRectMake(
+                    barRect.origin.x,
+                    barRect.origin.y,
+                    MIN(MAX(1, ((locationValue - min) / (max - min)) * barRect.size.width), barRect.size.width),
+                    (i == 0) ? barRect.size.height : floor(barRect.size.height - 1)
+                )
+            );
         }
         else {
             float min = temperatureMin;
             float max = temperatureMax;
 
-            CGContextFillRect(gc.CGContext, CGRectMake(barRect.origin.x, barRect.origin.y, MAX(1, ((locationValue - min) / (max - min)) * barRect.size.width), (i == 0) ? barRect.size.height : floor(barRect.size.height - 1)));
+            CGContextFillRect(
+                gc.CGContext,
+                CGRectMake(
+                    barRect.origin.x,
+                    barRect.origin.y,
+                    MIN(MAX(1, ((locationValue - min) / (max - min)) * barRect.size.width), barRect.size.width),
+                    (i == 0) ? barRect.size.height : floor(barRect.size.height - 1)
+                )
+            );
         }
 
         [[appSettings borderColor] set];
@@ -460,7 +476,7 @@
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
-    NSMenu *myMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@"Temperature View"];
+    NSMenu *myMenu = [[NSMenu alloc] initWithTitle:@"Temperature View"];
     NSMenuItem *tMI;
 
     NSArray *locations = [[XRGTemperatureMiner shared] locationKeysIncludingUnknown:[XRGTemperatureView showUnknownSensors]];
@@ -485,7 +501,7 @@
 			[s appendFormat:@"%3.0f%@", locationTemperature, units];
 		}
 
-        tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:s
+        tMI = [[NSMenuItem alloc] initWithTitle:s
 																	action:@selector(emptyEvent:) 
 															 keyEquivalent:@""];
 
@@ -494,15 +510,15 @@
         
     [myMenu addItem:[NSMenuItem separatorItem]];
 
-    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
+    tMI = [[NSMenuItem alloc] initWithTitle:@"Reset Graph" action:@selector(clearData:) keyEquivalent:@""];
     [myMenu addItem:tMI];
 
     [myMenu addItem:[NSMenuItem separatorItem]];
 
-    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open XRG Temperature Preferences..." action:@selector(openTemperaturePreferences:) keyEquivalent:@""];
+    tMI = [[NSMenuItem alloc] initWithTitle:@"Open XRG Temperature Preferences..." action:@selector(openTemperaturePreferences:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
-    tMI = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"Open Temperature Sensors Window..." action:@selector(showSensorWindow:) keyEquivalent:@""];
+    tMI = [[NSMenuItem alloc] initWithTitle:@"Open Temperature Sensors Window..." action:@selector(showSensorWindow:) keyEquivalent:@""];
     [myMenu addItem:tMI];
     
     return myMenu;
